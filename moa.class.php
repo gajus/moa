@@ -6,9 +6,7 @@ use PDO;
 abstract class Moa implements \ArrayAccess {
 	protected
 		$db,
-		$data = [],
-		$redis,
-		$foreign_instances = [];
+		$data = [];
 	
 	/**
 	 * @param int $primary_key Initialises the object by attempting to fetch data from the database using the primary key.
@@ -16,7 +14,6 @@ abstract class Moa implements \ArrayAccess {
 	 */
 	public function __construct (\PDO $db, $primary_key = null) {
 		$this->db = $db;
-		$this->redis = $redis;
 		
 		if (is_array($primary_key)) {
 			$this->data = $primary_key;
@@ -26,10 +23,6 @@ abstract class Moa implements \ArrayAccess {
 				
 				if (!$this->data) {
 					throw new Data_Exception('Object not found.');
-				}
-				
-				if ($redis) {
-					$redis->setex($key, $ttl, $this->data);
 				}
 			}
 		}
