@@ -1,4 +1,4 @@
 <?php
-namespace ay\moa;
+namespace gajus\moa;
 
 class Data_Exception extends \Exception {}

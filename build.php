@@ -3,7 +3,9 @@ if (php_sapi_name() !== 'cli') {
 	throw new \RuntimeException('Interface is not "cli".');
 }
 
-$parameters = getopt('', ['path:', 'host::', 'database:', 'user::', 'password::', 'namespace:', 'extends:', 'clean']);
+// php ./build.php --namespace "sandbox\moa" --database "moa" --clean --path "./sandbox/moa"
+
+$parameters = getopt('', ['path:', 'host:', 'database:', 'user:', 'password:', 'namespace:', 'extends:', 'clean']);
 
 if (empty($parameters['database'])) {
 	throw new \RuntimeException('"database" parameter is empty.');
@@ -11,10 +13,6 @@ if (empty($parameters['database'])) {
 
 if (empty($parameters['namespace'])) {
 	throw new \RuntimeException('"namespace" parameter is empty.');
-}
-
-if (empty($parameters['extends'])) {
-	throw new \RuntimeException('"extends" parameter is empty.');
 }
 
 if (empty($parameters['path'])) {
@@ -67,19 +65,19 @@ $parameter_type_map = [
 ];
 
 foreach($columns as &$column) {
-	$column_type_name = strpos($column['column_type'], '(') === false ? $column['column_type'] : strstr($column['column_type'], '(', true);
+	$column['column_type'] = strpos($column['column_type'], '(') === false ? $column['column_type'] : strstr($column['column_type'], '(', true);
 	
-	if (!isset($parameter_type_map[$column_type_name])) {
-		throw new UnexpectedValueException('Unsupported column type "' . $column_type_name . '".');
+	if (!isset($parameter_type_map[$column['column_type']])) {
+		throw new UnexpectedValueException('Unsupported column type "' . $column['column_type'] . '".');
 	}
 	 
 	// Automatically convert MySQL timestamp/datetime representation to UNIX timestamp.
-	$column['select_name'] = $column_type_name === 'datetime' || $column_type_name === 'timestamp' ? 'UNIX_TIMESTAMP(`' . $column['table_name'] .'`.`' . $column['column_name'] . '`) `' . $column['column_name'] . '`' : '`' . $column['table_name'] .'`.`' . $column['column_name'] . '`';
+	$column['select_name'] = $column['column_type'] === 'datetime' || $column['column_type'] === 'timestamp' ? 'UNIX_TIMESTAMP(`' . $column['table_name'] .'`.`' . $column['column_name'] . '`) `' . $column['column_name'] . '`' : '`' . $column['table_name'] .'`.`' . $column['column_name'] . '`';
 	
 	// Parameter type is used later to bind parameters in the prepared statements.
-	$column['parameter_type'] = $parameter_type_map[$column_type_name];
+	$column['parameter_type'] = $parameter_type_map[$column['column_type']];
 
-	unset($column['column_type']);
+	#unset($column['column_type']);
 	
 	unset($column);
 }
@@ -105,19 +103,27 @@ if (array_key_exists('clean', $parameters)) {
 $model_template = file_get_contents(__DIR__ . '/template.php');
 
 foreach ($information_schema as $table_name => $columns) {
-	// Do not create model for joining tables.
-	if (current($columns)['extra'] !== 'auto_increment') {
+	$first_column = current($columns);
+
+	// Do not create model for joining tables. First column is expected to be the primary key.
+	if ($first_column['extra'] !== 'auto_increment') {
 		continue;
 	}
-	
+
 	$properties = [];
 	$properties['table_name'] = $table_name;
+	$properties['primary_key_name'] = 'id';
 	$properties['select_statement'] = implode(', ', array_map(function ($e) { return $e['select_name']; }, $columns));
 	$properties['columns'] = $columns;
 
 	$model = $model_template;
 	$model = str_replace('namespace;', 'namespace ' . $parameters['namespace'] . ';', $model);
-	$model = str_replace('extends', 'extends ' . $parameters['extends'], $model);
+	
+	if (isset($parameters['extends'])) {
+		$model = str_replace('\gajus\moa\Mother', $parameters['extends'], $model);
+	}
+
+	$model = str_replace('Model_Name', $table_name, $model);
 	$model = str_replace('$properties', '$properties = ' . var_export($properties, true), $model);
 
 	file_put_contents($parameters['path'] . '/' . $table_name . '.php', $model);
