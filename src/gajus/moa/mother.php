@@ -1,6 +1,10 @@
 <?php
 namespace gajus\moa;
 
+/**
+ * @link https://github.com/gajus/moa for the canonical source repository
+ * @license https://github.com/gajus/moa/blob/master/LICENSE BSD 3-Clause
+ */
 abstract class Mother implements \ArrayAccess {
 	protected
 		$db,
@@ -21,7 +25,7 @@ abstract class Mother implements \ArrayAccess {
 				$this->data = $this->getByPrimaryKey($data);
 				
 				if (!$this->data) {
-					throw new Data_Exception('Object not found.');
+					throw new \gajus\moa\exception\Data_Exception('Object not found.');
 				}
 			}
 		} else {
@@ -33,12 +37,13 @@ abstract class Mother implements \ArrayAccess {
 		}
 	}
 	
-	public function getDatabaseInstance () {
-		return $this->db;
-	}
+	#public function getDatabaseHandle () {
+	#	return $this->db;
+	#}
 	
 	/**
 	 * @param integer|string $primary_key
+	 * @return mixed
 	 */
 	private function getByPrimaryKey ($primary_key) {
 		$data = $this->db
@@ -49,18 +54,34 @@ abstract class Mother implements \ArrayAccess {
 		return $data;
 	}
 	
+	/**
+	 * @param mixed $offset
+	 * @return boolean
+	 */
 	public function offsetExists ($offset) {
 		return isset($this->data[$offset]);
 	}
 	
+	/**
+	 * @param mixed $offset
+	 * @return mixed
+	 */
 	public function offsetGet ($offset) {
 		return $this->data[$offset];
 	}
 	
+	/**
+	 * @param mixed $offset
+	 * @return void
+	 */
 	public function offsetSet ($offset, $value) {
-		return $this->set($offset, $value);
+		$this->set($offset, $value);
 	}
 	
+	/**
+	 * @param mixed $offset
+	 * @return void
+	 */
 	public function offsetUnset ($offset) {
 		unset($this->data[$offset]);
 	}
@@ -69,28 +90,32 @@ abstract class Mother implements \ArrayAccess {
 	
 	/**
 	 * @param array $data
+	 * @return gajus\moa\Mother
 	 */
 	public function populate (array $data) {
 		foreach ($data as $name => $value) {
 			$this->set($name, $value);
 		}
+
+		return $this;
 	} 
 
 	/**
 	 * @param string $name
 	 * @param mixed $value
+	 * @return boolean True if set resulted in a change.
 	 */
 	final public function set ($name, $value = null) {
 		if ($name === static::$properties['primary_key_name']) {
-			throw new Data_Exception('Object primary key value cannot be overwritten.');
+			throw new \gajus\moa\Logic_Exception('Object primary key value cannot be overwritten.');
 		} else if (!isset(static::$properties['columns'][$name])) {
-			throw new Data_Exception('Unknown property.');
+			throw new \gajus\moa\Logic_Exception('Trying to set non-object property.');
 		}
 		
 		if (static::$properties['columns'][$name]['character_maximum_length'] !== null && static::$properties['columns'][$name]['character_maximum_length'] < mb_strlen($value)) {
 			// This implementation assumes unicode at all time.
 			
-			throw new Data_Exception('Property "' . $name . '" length limit is ' . static::$properties['columns'][$name]['character_maximum_length'] . ' characters.');
+			throw new \gajus\moa\Logic_Exception('Property "' . $name . '" length limit is ' . static::$properties['columns'][$name]['character_maximum_length'] . ' characters.');
 		}
 		
 		//$this->validateInput($data, $value);
@@ -106,7 +131,7 @@ abstract class Mother implements \ArrayAccess {
 	
 	final public function get ($name) {
 		if (!array_key_exists($name, $this->data)) {
-			throw new Data_Exception('Unlisted object "' . static::$table_name . '" property "' . $name . '".');
+			throw new \gajus\moa\Logic_Exception('Trying to get non-object property.');
 		}
 		
 		return $this->data[$name];
@@ -116,6 +141,13 @@ abstract class Mother implements \ArrayAccess {
 		return $this->data;
 	}
 	
+	/**
+	 * Save the object to the database. Depending on whether object's primary key is set
+	 * this method will either attempt to insert the object to the database or update
+	 * existing entry.
+	 *
+	 * @return gajus\moa\Mother
+	 */
 	final public function save () {
 		foreach (static::$properties['columns'] as $name => $column) {
 			if ($column['is_nullable'] === 'NO' && is_null($this->data[$name])) {
@@ -123,7 +155,7 @@ abstract class Mother implements \ArrayAccess {
 			}
 
 			if ($column['is_nullable'] === 'NO' && is_null($column['column_default']) && !isset($this->data[$name])) {
-				throw new \LogicException('Object initialised without the required properties.');
+				throw new \gajus\moa\Logic_Exception('Object initialised without the required properties.');
 			}
 		}
 
@@ -138,7 +170,7 @@ abstract class Mother implements \ArrayAccess {
 
 			if ($value !== null && in_array($column['column_type'], ['datetime', 'timestamp'])) {
 				if (!is_int($value)) {
-					throw new Data_Exception('Timestamp or datetime must be defined as a unix timestamp. "' . $value . '" (' . gettype($value) . ') is given instead.');
+					throw new \gajus\moa\Invalid_Argument_Exception('Timestamp or datetime must be defined as a unix timestamp. "' . $value . '" (' . gettype($value) . ') is given instead.');
 				}
 				
 				return '`' . $name . '` = FROM_UNIXTIME(:' . $name . ')';
@@ -177,9 +209,9 @@ abstract class Mother implements \ArrayAccess {
 				$columns = array_map(function ($e) { return $e['Column_name']; }, $indexes);
 				
 				if (count($columns) > 1) {
-					throw new Data_Exception('"' . implode(', ', $columns) . '" column combination must have a unique value.', 0, $e);
+					throw new \gajus\moa\Logic_Exception('"' . implode(', ', $columns) . '" column combination must have a unique value.', 0, $e);
 				} else {
-					throw new Data_Exception('"' . $columns[0] . '" column must have a unique value.', 0, $e);
+					throw new \gajus\moa\Logic_Exception('"' . $columns[0] . '" column must have a unique value.', 0, $e);
 				}
 				
 	
@@ -206,13 +238,14 @@ abstract class Mother implements \ArrayAccess {
 	}
 	
 	/**
-	 * Delete object from the database.
+	 * Delete object from the database. Deleted object retains its data except for the primary key value.
+	 * Saving deleted object will cause the object to be created with a new primary key value.
 	 * 
-	 * @return void
+	 * @return gajus\moa\Mother
 	 */
 	final public function delete () {
 		if (!isset($this->data[static::$properties['primary_key_name']])) {
-			throw new \LogicException('Object\'s primary key value is unset.');
+			throw new \gajus\moa\exception\Logic_Exception('Object\'s primary key value is unset.');
 		}
 		
 		$this->db->beginTransaction();
@@ -226,24 +259,26 @@ abstract class Mother implements \ArrayAccess {
 		$this->db->commit();
 		
 		unset($this->data[static::$properties['primary_key_name']]);
+
+		return $this;
 	}
 	
 	/**
-	 * Method automatically called after object is insterted to the database.
+	 * Method called after object is insterted to the database.
 	 * 
 	 * @return void
 	 */
 	protected function afterInsert () {}
 
 	/**
-	 * Method automatically called after object is updated in the database.
+	 * Method called after object is updated in the database.
 	 * 
 	 * @return void
 	 */
 	protected function afterUpdate () {}
 
 	/**
-	 * Method automatically called after object is deleted from the database.
+	 * Method called after object is deleted from the database.
 	 * 
 	 * @return void
 	 */
