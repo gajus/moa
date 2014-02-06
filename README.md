@@ -1,6 +1,6 @@
 # MOA
 
-MOA provides abstraction layer for interacting with the primary-key tables.
+MOA provides abstraction layer for interacting with database tables. MOA is not [ORM](http://en.wikipedia.org/wiki/Object-relational_mapping). It is closer to [Active Record pattern](http://en.wikipedia.org/wiki/Active_record_pattern) implementation.
 
 MOA's build script fetches all of database attributes, and represents each table that has primary-key as a model, with the respective table attributes. The primary purpose of this script is to reduce manually typed duplication of data representation.
 
