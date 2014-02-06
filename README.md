@@ -1,6 +1,6 @@
 # MOA
 
-MOA provides abstraction layer for interacting with database tables. MOA is not [ORM](http://en.wikipedia.org/wiki/Object-relational_mapping). It is closer to [Active Record pattern](http://en.wikipedia.org/wiki/Active_record_pattern) implementation.
+MOA (mother of all) provides abstraction layer for interacting with database tables. MOA is not [ORM](http://en.wikipedia.org/wiki/Object-relational_mapping). It is closer to [Active Record pattern](http://en.wikipedia.org/wiki/Active_record_pattern) implementation.
 
 ### Not Active Record
 
