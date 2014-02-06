@@ -25,6 +25,8 @@ Each of which can interupt the respective operation.
 
 ## Hierarchy
 
+MOA's role in the project can be represented in the following hierarchy:
+
 ```
 gajus\moa\Mother Mother of all models.
     your\Base [optional]
@@ -47,7 +49,7 @@ Models are built using `./bin/build.php` script. The following parameters are av
 --clean Whipe out the directory.
 ```
 
-Examples used for unit testing are built using:
+e.g., the examples used for unit testing are built using:
 
 ```
 php ./build.php --namespace "sandbox\moa" --database "moa" --clean --path "./sandbox/moa"
