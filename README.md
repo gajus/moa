@@ -53,7 +53,7 @@ gajus\moa\Mother
 
 ## Naming convention
 
-MOA assumes that your models are writen using underscore convention (e.g. `my_table_name`). Table names must be singular (e.g. `car` not `cars`). MOA generated models will use underscore convention as well.
+MOA assumes that your models are writen using underscore convention (e.g. `my_table_name`). Table names must be singular (e.g. `car` not `cars`). MOA generated models will use underscore convention.
 
 While it is advised that you follow the same naming convention, models that extend MOA generated models can have any name.
 
