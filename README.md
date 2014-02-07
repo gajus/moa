@@ -22,6 +22,8 @@ Instead, when using MOA you are supposed to write [custom methods with custom SQ
 
 [MOA builder script](https://github.com/gajus/moa#building-models) generates model file for each table using attributes fetched from the database. These attributes define column names, type, constraints, etc. The primary purpose of this script is to reduce manually typed duplication of data representation. However, you need to build these files every time you change database schema.
 
+In other Active Record implementations, this is avoided either by hard-typing these attributes into your models, or allowing the base class to fetch them during the program run time. My view is that, the former is error-prone, while the latter (even with cache) is lazy-workaround that has a considerable performance hit.
+
 ### Mother
 
 All models extend `gajus\moa\Mother`. Mother has getters and setters that use the prefetched table attributes to work out when you are trying to assign a non-existing property, save object without all the required properties, or other cases that would otherwise cause an error only at the time of interacting with the database.
