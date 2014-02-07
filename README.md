@@ -81,7 +81,7 @@ If you want to inject logic between Mother and the generated models, you need to
 
 ### Individual models
 
-Models generated using MOA are `abstract`. Therefore you need to extend each model that you use, even if without adding additional logic:
+Models generated using MOA are `abstract`. Therefore, you need to extend each model that you use, even if without adding additional logic:
 
 ```php
 <?php
