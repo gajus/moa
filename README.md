@@ -14,7 +14,7 @@ In general, MOA is for updating/inserting data, rather than retrieving existing 
 * [Paris](https://github.com/j4mie/paris)
 * [Parm](https://github.com/cassell/Parm)
 
-Instead, when using MOA you are supposed to write custom methods with custom SQL queries to retrieve data. Only when you are need to update/insest data you need to create instance of MOA. For this same reason, MOA convention is to return instance of MOA from methods that imply single results and to return plain associative array for multiple results.
+Instead, when using MOA you are supposed to write [custom methods with custom SQL queries](https://github.com/gajus/moa#individual-models) to retrieve data. Only when you are need to update/insest data you need to create instance of MOA. For this same reason, MOA convention is to return instance of MOA from methods that imply single results and to return plain associative array for multiple results.
 
 ## Hierarchy & Responsibilities
 
