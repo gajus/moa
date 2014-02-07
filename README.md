@@ -39,7 +39,7 @@ Models inherit the following methods:
 * `afterUpdate()`
 * `afterDelete()`
 
-Each of which can interupt the respective operation.
+Each of which can interrupt the respective operation.
 
 As a result, project hierarchy is:
 
