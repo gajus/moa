@@ -20,7 +20,7 @@ Instead, when using MOA you are supposed to write [custom methods with custom SQ
 
 ### Model builder
 
-[MOA build script](https://github.com/gajus/moa#building-models) fetches all of the database attributes to build models. Each model has definition of the columns (column name, type, etc.) and constraints. The primary purpose of this script is to reduce manually typed duplication of data representation.
+[MOA builder script](https://github.com/gajus/moa#building-models) generates model file for each table using attributes fetched from the database. These attributes define column names, type, constraints, etc. The primary purpose of this script is to reduce manually typed duplication of data representation. However, you need to build these files every time you change database schema.
 
 ### Mother
 
