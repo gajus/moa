@@ -36,6 +36,7 @@ $columns = $db
 		`column_type`,
 		`column_default`,
 		`column_key`,
+		`data_type`,
 		`is_nullable`,
 		`extra`,
 		`character_maximum_length`
@@ -45,41 +46,13 @@ $columns = $db
 		`table_schema` = DATABASE();
 	")->fetchAll(PDO::FETCH_ASSOC);
 
-$parameter_type_map = [
-	'int' => PDO::PARAM_INT,
-	'bigint' => PDO::PARAM_INT,
-	'smallint' => PDO::PARAM_INT,
-	'tinyint' => PDO::PARAM_INT,
-	'mediumint' => PDO::PARAM_INT,
-	'enum' => PDO::PARAM_STR,
-	'varchar' => PDO::PARAM_STR,
-	'date' => PDO::PARAM_STR,
-	'datetime' => PDO::PARAM_STR,
-	'timestamp' => PDO::PARAM_STR,
-	'char' => PDO::PARAM_STR,
-	'decimal' => PDO::PARAM_STR,
-	'text' => PDO::PARAM_STR,
-	'longtext' => PDO::PARAM_STR
-];
-
-foreach($columns as &$column) {
-	$column['column_type'] = strpos($column['column_type'], '(') === false ? $column['column_type'] : strstr($column['column_type'], '(', true);
-	
-	if (!isset($parameter_type_map[$column['column_type']])) {
-		throw new \UnexpectedValueException('Unsupported column type "' . $column['column_type'] . '".');
-	}
-	
-	// Parameter type is used later to bind parameters in the prepared statements.
-	$column['parameter_type'] = $parameter_type_map[$column['column_type']];
-
-	#unset($column['column_type']);
-	
-	unset($column);
-}
-
 $information_schema = [];
 
 foreach ($columns as $column) {
+	if ($column['character_maximum_length']) {
+		$column['character_maximum_length'] = (int) $column['character_maximum_length'];
+	}
+
 	$information_schema[array_shift($column)][array_shift($column)] = $column;
 }
 
@@ -103,6 +76,12 @@ foreach ($information_schema as $table_name => $columns) {
 	if ($first_column['extra'] !== 'auto_increment') {
 		throw new \LogicException('MOA does not work with tables without primary (surrogate) key.');
 	}
+
+	$columns = array_map(function ($column) {
+		$column['is_nullable'] = $column['is_nullable'] === 'YES';
+
+		return $column;
+	}, $columns);
 
 	$properties = [
 		'{{namespace}}' => $parameters['namespace'],

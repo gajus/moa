@@ -9,6 +9,24 @@ abstract class Mother implements \ArrayAccess {
 	protected
 		$db,
 		$data = [];
+
+	static private
+		$parameter_type_map = [
+			'int' => PDO::PARAM_INT,
+			'bigint' => PDO::PARAM_INT,
+			'smallint' => PDO::PARAM_INT,
+			'tinyint' => PDO::PARAM_INT,
+			'mediumint' => PDO::PARAM_INT,
+			'enum' => PDO::PARAM_STR,
+			'varchar' => PDO::PARAM_STR,
+			'date' => PDO::PARAM_STR,
+			'datetime' => PDO::PARAM_STR,
+			'timestamp' => PDO::PARAM_STR,
+			'char' => PDO::PARAM_STR,
+			'decimal' => PDO::PARAM_STR,
+			'text' => PDO::PARAM_STR,
+			'longtext' => PDO::PARAM_STR
+		];
 	
 	/**
 	 * @param PDO $db
@@ -34,10 +52,6 @@ abstract class Mother implements \ArrayAccess {
 		} else {
 			throw new \gajus\moa\exception\Invalid_Argument_Exception('Invalid argument type.');
 		}
-
-		#foreach (static::$properties['columns'] as $name => $column) {
-		#	$this->data[$name] = null;
-		#}
 	}
 
 	/**
@@ -130,16 +144,36 @@ abstract class Mother implements \ArrayAccess {
 			throw new \gajus\moa\exception\Logic_Exception('Trying to set non-object property.');
 		}
 
-		// @todo Detect encoding type.
-		if (static::$columns[$name]['character_maximum_length'] !== null && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
-			throw new \gajus\moa\exception\Invalid_Argument_Exception('Property does not conform to column\'s maxiumum character length.');
+		switch (static::$columns[$name]['data_type']) {
+			case 'datetime':
+			case 'timestamp':
+				// @todo Accept DateTime
+				if (!is_int($value) && !ctype_digit($value)) {
+					throw new \gajus\moa\exception\Invalid_Argument_Exception('Propery must be a decimal digit.');
+				}
+				
+				break;
+
+			case 'tinyint':
+			case 'smallint':
+			case 'mediumint':
+			case 'int':
+			case 'bigint':
+				if (!is_int($value) && !ctype_digit($value)) {
+					throw new \gajus\moa\exception\Invalid_Argument_Exception('Propery must be a decimal digit.');
+				}
+
+				// @todo check range
+
+				break;
+
+			default:
+				if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
+					throw new \gajus\moa\exception\Invalid_Argument_Exception('Property does not conform to column\'s maxiumum character length.');
+				}
+				break;
 		}
 
-		// @todo Accept DateTime
-		if ((static::$columns[$name]['column_type'] === 'datetime' || static::$columns[$name]['column_type'] === 'timestamp') && !is_int($value)) {
-			throw new \gajus\moa\exception\Invalid_Argument_Exception('Property must be an integer UNIX timestamp reprensation.');
-		}
-		
 		//$this->validateInput($data, $value);
 		
 		if (isset($this->data[$name]) && $this->data[$name] === $value) {
@@ -176,12 +210,15 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	final public function save () {
 		foreach (static::$columns as $name => $column) {
-			if ($column['is_nullable'] === 'NO' && is_null($this->data[$name])) {
-				unset($this->data[$name]);
-			}
+			if (!$column['is_nullable']) {
+				// If property is not nullable, it might be that it has a default value.
+				if (is_null($this->data[$name])) {
+					unset($this->data[$name]);
+				}
 
-			if ($column['is_nullable'] === 'NO' && is_null($column['column_default']) && !isset($this->data[$name])) {
-				throw new \gajus\moa\exception\Logic_Exception('Object initialised without the required properties.');
+				if (is_null($column['column_default']) && !isset($this->data[$name])) {
+					throw new \gajus\moa\exception\Logic_Exception('Object initialised without the required properties.');
+				}
 			}
 		}
 
@@ -213,7 +250,11 @@ abstract class Mother implements \ArrayAccess {
 			}
 			
 			foreach ($this->data as $k => $v) {
-				$sth->bindValue($k, $v, static::$columns[$k]['parameter_type']);
+				if (!isset(self::$parameter_type_map[static::$columns[$k]['data_type']])) {
+					throw new \gajus\moa\Unexpected_Value_Exception('Unknown data type.');
+				}
+
+				$sth->bindValue($k, $v, self::$parameter_type_map[static::$columns[$k]['data_type']]);
 			}
 			
 			$sth->execute();

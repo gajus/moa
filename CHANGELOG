@@ -1,3 +1,9 @@
+Todo:
+
+* Added integer input range comliance check.
+
+Changelog:
+
 0.0.2 / 2014-02-07
 
 * Table name and primary key name are now constants, instead of being part of the $properties definition.
