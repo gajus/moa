@@ -20,7 +20,7 @@ Instead, when using MOA you are supposed to write [custom methods with custom SQ
 
 ### Model builder
 
-[MOA builder script](https://github.com/gajus/moa#building-models) generates model file for each table using attributes fetched from the database. These attributes define column names, type, constraints, etc. The primary purpose of this script is to reduce manually typed duplication of data representation. However, you need to run the builder script every time you change the database schema.
+[MOA builder script](https://github.com/gajus/moa#building-models) generates model file for each table using attributes fetched from the database. These attributes define column names, type, constraints, etc. The primary purpose of this script is to reduce manually typed duplication of data representation.
 
 In other Active Record implementations, this is avoided either by hard-typing these attributes into your models, or allowing the base class to fetch them during the program run time. My view is that, the former is error-prone, while the latter (even with cache) is lazy-workaround that has a considerable performance hit.
 
