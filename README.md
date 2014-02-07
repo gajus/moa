@@ -30,8 +30,8 @@ All models extend `gajus\moa\Mother`. Mother has getters and setters that use th
 
 In addition to the getters and setters, MOA provides the following methods:
 
-* `save()` – to insert/update entry in the database
-* `delete()` – to remove the entry from the database
+* `save()` – To insert/update entry in the database.
+* `delete()` – To remove the entry from the database.
 
 Models inherit the following methods:
 
