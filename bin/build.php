@@ -3,8 +3,6 @@ if (php_sapi_name() !== 'cli') {
 	throw new \RuntimeException('Interface is not "cli".');
 }
 
-// php ./build.php --namespace "sandbox\moa" --database "moa" --clean --path "./sandbox/moa"
-
 $parameters = getopt('', ['path:', 'host:', 'database:', 'user:', 'password:', 'namespace:', 'extends:', 'clean']);
 
 if (empty($parameters['database'])) {
@@ -68,7 +66,7 @@ foreach($columns as &$column) {
 	$column['column_type'] = strpos($column['column_type'], '(') === false ? $column['column_type'] : strstr($column['column_type'], '(', true);
 	
 	if (!isset($parameter_type_map[$column['column_type']])) {
-		throw new UnexpectedValueException('Unsupported column type "' . $column['column_type'] . '".');
+		throw new \UnexpectedValueException('Unsupported column type "' . $column['column_type'] . '".');
 	}
 	 
 	// Automatically convert MySQL timestamp/datetime representation to UNIX timestamp.
@@ -95,12 +93,12 @@ if (array_key_exists('clean', $parameters)) {
 
 	foreach ($models as $model_file) {
 		if(@unlink($model_file) === false) {
-			throw new RuntimeException('Insufficient permissions.');
+			throw new \RuntimeException('Insufficient permissions.');
 		}
 	}
 }
 
-$model_template = file_get_contents(__DIR__ . '/template.php');
+$model_template = file_get_contents(__DIR__ . '/template/model.php');
 
 foreach ($information_schema as $table_name => $columns) {
 	$first_column = current($columns);

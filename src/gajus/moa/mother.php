@@ -25,7 +25,7 @@ abstract class Mother implements \ArrayAccess {
 				$this->data = $this->getByPrimaryKey($data);
 				
 				if (!$this->data) {
-					throw new \gajus\moa\exception\Data_Exception('Object not found.');
+					throw new \gajus\moa\exception\Logic_Exception('Object not found.');
 				}
 			}
 		} else {
@@ -107,15 +107,15 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	final public function set ($name, $value = null) {
 		if ($name === static::$properties['primary_key_name']) {
-			throw new \gajus\moa\Logic_Exception('Object primary key value cannot be overwritten.');
+			throw new \gajus\moa\exception\Logic_Exception('Object primary key value cannot be overwritten.');
 		} else if (!isset(static::$properties['columns'][$name])) {
-			throw new \gajus\moa\Logic_Exception('Trying to set non-object property.');
+			throw new \gajus\moa\exception\Logic_Exception('Trying to set non-object property.');
 		}
 		
 		if (static::$properties['columns'][$name]['character_maximum_length'] !== null && static::$properties['columns'][$name]['character_maximum_length'] < mb_strlen($value)) {
 			// This implementation assumes unicode at all time.
 			
-			throw new \gajus\moa\Logic_Exception('Property "' . $name . '" length limit is ' . static::$properties['columns'][$name]['character_maximum_length'] . ' characters.');
+			throw new \gajus\moa\exception\Logic_Exception('Property "' . $name . '" length limit is ' . static::$properties['columns'][$name]['character_maximum_length'] . ' characters.');
 		}
 		
 		//$this->validateInput($data, $value);
@@ -131,7 +131,7 @@ abstract class Mother implements \ArrayAccess {
 	
 	final public function get ($name) {
 		if (!array_key_exists($name, $this->data)) {
-			throw new \gajus\moa\Logic_Exception('Trying to get non-object property.');
+			throw new \gajus\moa\exception\Logic_Exception('Trying to get non-object property.');
 		}
 		
 		return $this->data[$name];
@@ -155,7 +155,7 @@ abstract class Mother implements \ArrayAccess {
 			}
 
 			if ($column['is_nullable'] === 'NO' && is_null($column['column_default']) && !isset($this->data[$name])) {
-				throw new \gajus\moa\Logic_Exception('Object initialised without the required properties.');
+				throw new \gajus\moa\exception\Logic_Exception('Object initialised without the required properties.');
 			}
 		}
 
@@ -170,7 +170,7 @@ abstract class Mother implements \ArrayAccess {
 
 			if ($value !== null && in_array($column['column_type'], ['datetime', 'timestamp'])) {
 				if (!is_int($value)) {
-					throw new \gajus\moa\Invalid_Argument_Exception('Timestamp or datetime must be defined as a unix timestamp. "' . $value . '" (' . gettype($value) . ') is given instead.');
+					throw new \gajus\moa\exception\Invalid_Argument_Exception('Timestamp or datetime must be defined as a unix timestamp. "' . $value . '" (' . gettype($value) . ') is given instead.');
 				}
 				
 				return '`' . $name . '` = FROM_UNIXTIME(:' . $name . ')';
@@ -209,9 +209,9 @@ abstract class Mother implements \ArrayAccess {
 				$columns = array_map(function ($e) { return $e['Column_name']; }, $indexes);
 				
 				if (count($columns) > 1) {
-					throw new \gajus\moa\Logic_Exception('"' . implode(', ', $columns) . '" column combination must have a unique value.', 0, $e);
+					throw new \gajus\moa\exception\Logic_Exception('"' . implode(', ', $columns) . '" column combination must have a unique value.', 0, $e);
 				} else {
-					throw new \gajus\moa\Logic_Exception('"' . $columns[0] . '" column must have a unique value.', 0, $e);
+					throw new \gajus\moa\exception\Logic_Exception('"' . $columns[0] . '" column must have a unique value.', 0, $e);
 				}
 				
 	

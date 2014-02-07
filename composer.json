@@ -12,7 +12,8 @@
 		}
 	],
 	"require": {
-		"php": ">=5.5"
+		"php": ">=5.5",
+		"ext-pdo": "*"
 	},
 	"require-dev": {
 	    "satooshi/php-coveralls": "dev-master"
