@@ -40,6 +40,11 @@ abstract class Mother implements \ArrayAccess {
 		#}
 	}
 
+	/**
+	 * Use the primary key to update object instance with the data from the database.
+	 * 
+	 * @return void
+	 */
 	final private function synchronise () {
 		if (!isset($data[static::PRIMARY_KEY_NAME])) {
 			throw new \gajus\moa\exception\Logic_Exception('Primary key is not set.');
@@ -53,20 +58,16 @@ abstract class Mother implements \ArrayAccess {
 		if (!$this->data) {
 			throw new \gajus\moa\exception\Record_Not_Found('Primary key value does not refer to an existing record.');
 		}
+
+		foreach (static::$columns as $name => $column) {
+			if ($column['column_type'] === 'datetime' || $column['column_type'] === 'timestamp') {
+				$this->data[$name] = strtotime($this->data[$name]);
+			}
+		}
 	}
 	
 	#public function getDatabaseHandle () {
 	#	return $this->db;
-	#}
-	
-	/**
-	 * Get instance of the model constructed using the primary key value.
-	 * 
-	 * @param integer|string $primary_key
-	 * @return array|boolean
-	 */
-	#static protected function getWherePrimaryKey ($primary_key) {
-	#	return $data;
 	#}
 	
 	/**
@@ -132,6 +133,11 @@ abstract class Mother implements \ArrayAccess {
 		// @todo Detect encoding type.
 		if (static::$columns[$name]['character_maximum_length'] !== null && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
 			throw new \gajus\moa\exception\Invalid_Argument_Exception('Property does not conform to column\'s maxiumum character length.');
+		}
+
+		// @todo Accept DateTime
+		if ((static::$columns[$name]['column_type'] === 'datetime' || static::$columns[$name]['column_type'] === 'timestamp') && !is_int($value)) {
+			throw new \gajus\moa\exception\Invalid_Argument_Exception('Property must be an integer UNIX timestamp reprensation.');
 		}
 		
 		//$this->validateInput($data, $value);

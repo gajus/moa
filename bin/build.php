@@ -68,9 +68,6 @@ foreach($columns as &$column) {
 	if (!isset($parameter_type_map[$column['column_type']])) {
 		throw new \UnexpectedValueException('Unsupported column type "' . $column['column_type'] . '".');
 	}
-	 
-	// Automatically convert MySQL timestamp/datetime representation to UNIX timestamp.
-	$column['select_name'] = $column['column_type'] === 'datetime' || $column['column_type'] === 'timestamp' ? 'UNIX_TIMESTAMP(`' . $column['table_name'] .'`.`' . $column['column_name'] . '`) `' . $column['column_name'] . '`' : '`' . $column['table_name'] .'`.`' . $column['column_name'] . '`';
 	
 	// Parameter type is used later to bind parameters in the prepared statements.
 	$column['parameter_type'] = $parameter_type_map[$column['column_type']];
@@ -113,7 +110,7 @@ foreach ($information_schema as $table_name => $columns) {
 		'{{extends}}' => isset($parameters['extends']) ? $parameters['extends'] : '\gajus\moa\Mother',
 		'{{table_name}}' => $table_name,
 		'{{primary_key_name}}' => 'id',
-		'{{columns}}' => var_export($properties, true)
+		'{{columns}}' => var_export($columns, true)
 	];
 
 	file_put_contents($parameters['path'] . '/' . $table_name . '.php', str_replace(array_keys($properties), array_values($properties), $model_template));
