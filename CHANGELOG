@@ -1,3 +1,10 @@
+0.0.2 / 2014-02-07
+
+* Table name and primary key name are now constants, instead of being part of the $properties definition.
+* Select statement is using * instead of column list.
+* Mother class no longer allows non-integer primary key value.
+* Added gajus\moa\exception\Record_Not_Found and gajus\moa\exception\Undefined_Property_Exception exceptions.
+
 0.0.1 / 2014-02-06
 
 * All exceptions extend \gajus\moa\exception\Moa_Exception.

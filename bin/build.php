@@ -103,28 +103,20 @@ $model_template = file_get_contents(__DIR__ . '/template/model.php');
 foreach ($information_schema as $table_name => $columns) {
 	$first_column = current($columns);
 
-	// Do not create model for joining tables. First column is expected to be the primary key.
 	if ($first_column['extra'] !== 'auto_increment') {
-		continue;
+		throw new \LogicException('MOA does not work with tables without primary (surrogate) key.');
 	}
 
-	$properties = [];
-	$properties['table_name'] = $table_name;
-	$properties['primary_key_name'] = 'id';
-	$properties['select_statement'] = implode(', ', array_map(function ($e) { return $e['select_name']; }, $columns));
-	$properties['columns'] = $columns;
+	$properties = [
+		'{{namespace}}' => $parameters['namespace'],
+		'{{model_name}}' => $table_name,
+		'{{extends}}' => isset($parameters['extends']) ? $parameters['extends'] : '\gajus\moa\Mother',
+		'{{table_name}}' => $table_name,
+		'{{primary_key_name}}' => 'id',
+		'{{columns}}' => var_export($properties, true)
+	];
 
-	$model = $model_template;
-	$model = str_replace('namespace;', 'namespace ' . $parameters['namespace'] . ';', $model);
-	
-	if (isset($parameters['extends'])) {
-		$model = str_replace('\gajus\moa\Mother', $parameters['extends'], $model);
-	}
-
-	$model = str_replace('Model_Name', $table_name, $model);
-	$model = str_replace('$properties', '$properties = ' . var_export($properties, true), $model);
-
-	file_put_contents($parameters['path'] . '/' . $table_name . '.php', $model);
+	file_put_contents($parameters['path'] . '/' . $table_name . '.php', str_replace(array_keys($properties), array_values($properties), $model_template));
 }
 
 echo 'Ok' . PHP_EOL;

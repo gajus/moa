@@ -1,7 +1,10 @@
 <?php
-namespace;
+namespace {{namespace}};
 
-abstract class Model_Name extends \gajus\moa\Mother {
-    protected static
-        $properties;
+abstract class {{model_name}} extends {{exptends}} {
+    const TABLE_NAME = '{{table_name}}';
+    const PRIMARY_KEY_NAME = '{{primary_key_name}}';
+
+    static protected
+        $columns = {{columns}};
 }

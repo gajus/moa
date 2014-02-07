@@ -12,28 +12,46 @@ abstract class Mother implements \ArrayAccess {
 	
 	/**
 	 * @param PDO $db
-	 * @param int|array $primary_key Initialises the object with data fetched from the database using the primary key. If $primary_key is array the object is initialised using the data in the array.
+	 * @param int|array|null $primary_key Initialises the object with data fetched from the database using the primary key. If $primary_key is array the object is initialised using the data in the array.
 	 */
 	public function __construct (\PDO $db, $data = null) {
 		$this->db = $db;
 		
-		if (is_array($data)) {
-			// @todo There should be some sort of sanity check.
-			$this->data = $data;
-		} else if ($data) {
-			if ($this->data === []) {
-				$this->data = $this->getByPrimaryKey($data);
-				
-				if (!$this->data) {
-					throw new \gajus\moa\exception\Logic_Exception('Object not found.');
-				}
-			}
-		} else {
-			$this->data = [];
+		if (is_int($data)) {
+			$this->data[static::PRIMARY_KEY_NAME] = $data;
 
-			foreach (static::$properties['columns'] as $name => $column) {
-				$this->data[$name] = null;
+			$this->synchronise();
+		} else if (is_array($data)) {
+			if (isset($data[static::PRIMARY_KEY_NAME])) {
+				$this->data[static::PRIMARY_KEY_NAME] = $data[static::PRIMARY_KEY_NAME];
+
+				unset($data[static::PRIMARY_KEY_NAME]);
 			}
+
+			$this->populate($data);
+		} else if (is_null($data)) {
+			$this->data = [];
+		} else {
+			throw new \gajus\moa\exception\Invalid_Argument_Exception('Invalid argument type.');
+		}
+
+		#foreach (static::$properties['columns'] as $name => $column) {
+		#	$this->data[$name] = null;
+		#}
+	}
+
+	final private function synchronise () {
+		if (!isset($data[static::PRIMARY_KEY_NAME])) {
+			throw new \gajus\moa\exception\Logic_Exception('Primary key is not set.');
+		}
+
+		$this->data = $this->db
+			->prepare("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?")
+			->execute([$data[static::PRIMARY_KEY_NAME]])
+			->fetch(\PDO::FETCH_ASSOC);
+
+		if (!$this->data) {
+			throw new \gajus\moa\exception\Record_Not_Found('Primary key value does not refer to an existing record.');
 		}
 	}
 	
@@ -42,17 +60,14 @@ abstract class Mother implements \ArrayAccess {
 	#}
 	
 	/**
+	 * Get instance of the model constructed using the primary key value.
+	 * 
 	 * @param integer|string $primary_key
-	 * @return mixed
+	 * @return array|boolean
 	 */
-	private function getByPrimaryKey ($primary_key) {
-		$data = $this->db
-			->prepare("SELECT " . static::$properties['select_statement'] . " FROM `" . static::$properties['table_name'] . "` WHERE `" . static::$properties['table_name'] . "`.`" . static::$properties['primary_key_name'] . "` = ?")
-			->execute([$primary_key])
-			->fetch(PDO::FETCH_ASSOC);
-		
-		return $data;
-	}
+	#static protected function getWherePrimaryKey ($primary_key) {
+	#	return $data;
+	#}
 	
 	/**
 	 * @param mixed $offset
@@ -89,6 +104,8 @@ abstract class Mother implements \ArrayAccess {
 	//protected function validateInput ($name, $value) {}
 	
 	/**
+	 * Shorthand method to pass each array key, value pair to the setter.
+	 *
 	 * @param array $data
 	 * @return gajus\moa\Mother
 	 */
@@ -101,21 +118,20 @@ abstract class Mother implements \ArrayAccess {
 	} 
 
 	/**
-	 * @param string $name
+	 * @param string $name Property name.
 	 * @param mixed $value
-	 * @return boolean True if set resulted in a change.
+	 * @return boolean True if setter affected the result set.
 	 */
-	final public function set ($name, $value = null) {
-		if ($name === static::$properties['primary_key_name']) {
+	public function set ($name, $value = null) {
+		if ($name === static::PRIMARY_KEY_NAME) {
 			throw new \gajus\moa\exception\Logic_Exception('Object primary key value cannot be overwritten.');
-		} else if (!isset(static::$properties['columns'][$name])) {
+		} else if (!isset(static::$columns[$name])) {
 			throw new \gajus\moa\exception\Logic_Exception('Trying to set non-object property.');
 		}
-		
-		if (static::$properties['columns'][$name]['character_maximum_length'] !== null && static::$properties['columns'][$name]['character_maximum_length'] < mb_strlen($value)) {
-			// This implementation assumes unicode at all time.
-			
-			throw new \gajus\moa\exception\Logic_Exception('Property "' . $name . '" length limit is ' . static::$properties['columns'][$name]['character_maximum_length'] . ' characters.');
+
+		// @todo Detect encoding type.
+		if (static::$columns[$name]['character_maximum_length'] !== null && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
+			throw new \gajus\moa\exception\Invalid_Argument_Exception('Property does not conform to column\'s maxiumum character length.');
 		}
 		
 		//$this->validateInput($data, $value);
@@ -129,27 +145,31 @@ abstract class Mother implements \ArrayAccess {
 		return true;
 	}
 	
-	final public function get ($name) {
-		if (!array_key_exists($name, $this->data)) {
-			throw new \gajus\moa\exception\Logic_Exception('Trying to get non-object property.');
+	/**
+	 * @param string $name Property name.
+	 * @return mixed
+	 */
+	public function get ($name) {
+		if (!isset(static::$columns[$name])) {
+			throw new \gajus\moa\exception\Undefined_Property_Exception('Trying to get non-object property.');
 		}
 		
-		return $this->data[$name];
+		return isset($this->data[$name]) ? $this->data[$name] : null;
 	}
 	
-	final public function flatten () {
-		return $this->data;
-	}
+	#final public function flatten () {
+	#	return $this->data;
+	#}
 	
 	/**
 	 * Save the object to the database. Depending on whether object's primary key is set
-	 * this method will either attempt to insert the object to the database or update
+	 * this method will either attempt to insert the object to the database or update an
 	 * existing entry.
 	 *
 	 * @return gajus\moa\Mother
 	 */
 	final public function save () {
-		foreach (static::$properties['columns'] as $name => $column) {
+		foreach (static::$columns as $name => $column) {
 			if ($column['is_nullable'] === 'NO' && is_null($this->data[$name])) {
 				unset($this->data[$name]);
 			}
@@ -163,12 +183,10 @@ abstract class Mother implements \ArrayAccess {
 		
 		$parameters = $this->data;
 		
-		unset($parameters[static::$properties['primary_key_name']]);
+		unset($parameters[static::PRIMARY_KEY_NAME]);
 		
 		$placeholders = implode(', ', array_map(function ($name, $value) {
-			$column = static::$properties['columns'][$name];
-
-			if ($value !== null && in_array($column['column_type'], ['datetime', 'timestamp'])) {
+			if ($value !== null && in_array(static::$columns[$name]['column_type'], ['datetime', 'timestamp'])) {
 				if (!is_int($value)) {
 					throw new \gajus\moa\exception\Invalid_Argument_Exception('Timestamp or datetime must be defined as a unix timestamp. "' . $value . '" (' . gettype($value) . ') is given instead.');
 				}
@@ -180,18 +198,16 @@ abstract class Mother implements \ArrayAccess {
 		}, array_keys($parameters), array_values($parameters)));
 		
 		try {
-			if (isset($this->data[static::$properties['primary_key_name']])) {
+			if (isset($this->data[static::PRIMARY_KEY_NAME])) {
 				$sth = $this->db
-					->prepare("UPDATE `" . static::$properties['table_name'] . "` `" . static::$properties['table_name'] . "` SET {$placeholders} WHERE `" . static::$properties['table_name'] . "`.`" . static::$properties['primary_key_name'] . "` = :" . static::$properties['primary_key_name']);
+					->prepare("UPDATE `" . static::TABLE_NAME . "` SET {$placeholders} WHERE `" . static::PRIMARY_KEY_NAME . "` = :" . static::PRIMARY_KEY_NAME);
 			} else {
-				bump($placeholders, $this->data);
-
 				$sth = $this->db
-					->prepare("INSERT INTO `" . static::$properties['table_name'] . "` SET {$placeholders};");
+					->prepare("INSERT INTO `" . static::TABLE_NAME . "` SET {$placeholders}");
 			}
 			
 			foreach ($this->data as $k => $v) {
-				$sth->bindValue($k, $v, static::$properties['columns'][$k]['parameter_type']);
+				$sth->bindValue($k, $v, static::$columns[$k]['parameter_type']);
 			}
 			
 			$sth->execute();
@@ -202,7 +218,7 @@ abstract class Mother implements \ArrayAccess {
 				preg_match('/(?<=\')[^\']*(?=\'[^\']*$)/', $e->getMessage(), $match);
 				
 				$indexes = $this->db
-					->prepare("SHOW INDEXES FROM `" . static::$table_name . "` WHERE `Key_name` = :key_name;")
+					->prepare("SHOW INDEXES FROM `" . static::TABLE_NAME . "` WHERE `Key_name` = :key_name;")
 					->execute(['key_name' => $match[0]])
 					->fetchAll(\PDO::FETCH_ASSOC);
 				
@@ -213,26 +229,21 @@ abstract class Mother implements \ArrayAccess {
 				} else {
 					throw new \gajus\moa\exception\Logic_Exception('"' . $columns[0] . '" column must have a unique value.', 0, $e);
 				}
-				
-	
 			}
 			
 			throw $e;
 		}
 		
-		
-		if (isset($this->data[static::$properties['primary_key_name']])) {
+		if (isset($this->data[static::PRIMARY_KEY_NAME])) {
 			$this->afterUpdate();
 		} else {
-			$this->data[static::$properties['primary_key_name']] = $this->db->lastInsertId();
+			$this->data[static::PRIMARY_KEY_NAME] = $this->db->lastInsertId();
 		
 			$this->afterInsert();
 		}
 		
-		$this->data = $this->db
-			->prepare("SELECT " . static::$properties['select_statement'] . " FROM `" . static::$properties['table_name'] . "` WHERE `" . static::$properties['table_name'] . "`.`" . static::$properties['primary_key_name'] . "` = ?")
-			->execute([$this->data[static::$properties['primary_key_name']]])
-			->fetch(\PDO::FETCH_ASSOC);
+		// @todo Synchronise only if table has columns that have on update trigger.
+		$this->synchronise();
 		
 		return $this;
 	}
