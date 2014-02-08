@@ -12,23 +12,25 @@ abstract class Mother implements \ArrayAccess {
 
 	static private
 		$parameter_type_map = [
-			'int' => PDO::PARAM_INT,
-			'bigint' => PDO::PARAM_INT,
-			'smallint' => PDO::PARAM_INT,
-			'tinyint' => PDO::PARAM_INT,
-			'mediumint' => PDO::PARAM_INT,
-			'enum' => PDO::PARAM_STR,
-			'varchar' => PDO::PARAM_STR,
-			'date' => PDO::PARAM_STR,
-			'datetime' => PDO::PARAM_STR,
-			'timestamp' => PDO::PARAM_STR,
-			'char' => PDO::PARAM_STR,
-			'decimal' => PDO::PARAM_STR,
-			'text' => PDO::PARAM_STR,
-			'longtext' => PDO::PARAM_STR
+			'int' => \PDO::PARAM_INT,
+			'bigint' => \PDO::PARAM_INT,
+			'smallint' => \PDO::PARAM_INT,
+			'tinyint' => \PDO::PARAM_INT,
+			'mediumint' => \PDO::PARAM_INT,
+			'enum' => \PDO::PARAM_STR,
+			'varchar' => \PDO::PARAM_STR,
+			'date' => \PDO::PARAM_STR,
+			'datetime' => \PDO::PARAM_STR,
+			'timestamp' => \PDO::PARAM_STR,
+			'char' => \PDO::PARAM_STR,
+			'decimal' => \PDO::PARAM_STR,
+			'text' => \PDO::PARAM_STR,
+			'longtext' => \PDO::PARAM_STR
 		];
 	
 	/**
+	 *
+	 *
 	 * @param PDO $db
 	 * @param int|array|null $primary_key Initialises the object with data fetched from the database using the primary key. If $primary_key is array the object is initialised using the data in the array.
 	 */
@@ -53,6 +55,9 @@ abstract class Mother implements \ArrayAccess {
 			throw new \gajus\moa\exception\Invalid_Argument_Exception('Invalid argument type.');
 		}
 	}
+
+	#static function blowFromId
+	#static function blowFromData
 
 	/**
 	 * Use the primary key to update object instance with the data from the database.
@@ -212,33 +217,31 @@ abstract class Mother implements \ArrayAccess {
 		foreach (static::$columns as $name => $column) {
 			if (!$column['is_nullable']) {
 				// If property is not nullable, it might be that it has a default value.
-				if (is_null($this->data[$name])) {
+				if (array_key_exists($name, $this->data) && is_null($this->data[$name])) {
 					unset($this->data[$name]);
 				}
 
-				if (is_null($column['column_default']) && !isset($this->data[$name])) {
-					throw new \gajus\moa\exception\Logic_Exception('Object initialised without the required properties.');
+				if (is_null($column['column_default']) && $column['extra'] !== 'auto_increment' && !isset($this->data[$name])) {
+					throw new \gajus\moa\exception\Logic_Exception('Object initialised without required property: "' . $name . '".');
 				}
 			}
 		}
+		
+		$data = $this->data;
+		
+		unset($data[static::PRIMARY_KEY_NAME]);
+		
+		$placeholders = [];
 
-		bump($this->data);
-		
-		$parameters = $this->data;
-		
-		unset($parameters[static::PRIMARY_KEY_NAME]);
-		
-		$placeholders = implode(', ', array_map(function ($name, $value) {
+		foreach ($data as $name => $value) {
 			if ($value !== null && in_array(static::$columns[$name]['column_type'], ['datetime', 'timestamp'])) {
-				if (!is_int($value)) {
-					throw new \gajus\moa\exception\Invalid_Argument_Exception('Timestamp or datetime must be defined as a unix timestamp. "' . $value . '" (' . gettype($value) . ') is given instead.');
-				}
-				
-				return '`' . $name . '` = FROM_UNIXTIME(:' . $name . ')';
+				$placeholders[] = '`' . $name . '` = FROM_UNIXTIME(:' . $name . ')';
 			} else {
-				return '`' . $name . '` = :' . $name;
+				$placeholders[] = '`' . $name . '` = :' . $name;
 			}
-		}, array_keys($parameters), array_values($parameters)));
+		}
+
+		$placeholders = implode(', ', $placeholders);
 		
 		try {
 			if (isset($this->data[static::PRIMARY_KEY_NAME])) {
