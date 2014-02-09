@@ -14,7 +14,7 @@ before_script:
   - sh -c "[ -d foo ] || mkdir tests/sandbox/model/moa"
   - sh -c "if [ '$DB' = 'mysql' ]; then mysql -e 'drop database if exists moa; create database moa;'; fi"
   - sh -c "if [ '$DB' = 'mysql' ]; then mysql moa < tests/data/moa.sql; fi"
-  - sh -c "php ./bin/build.php --namespace \"tests/sandbox\model\moa\" --database \"moa\" --user \"travis\" --path \"./tests/sandbox/model/moa\" --clean"
+  - sh -c "php ./bin/build.php --namespace \"sandbox\model\moa\" --database \"moa\" --user \"travis\" --path \"./tests/sandbox/model/moa\" --clean"
 
 script:
  - mkdir -p build/logs
