@@ -20,6 +20,7 @@ abstract class Mother implements \ArrayAccess {
 		$data = [];
 
 	private
+		$synchronisation_count = 0,
 		/**
 		 * Holds a copy of the data since the last sychronisation.
 		 * Difference between the current and last sychronisation data
@@ -78,6 +79,8 @@ abstract class Mother implements \ArrayAccess {
 		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
 			throw new \gajus\moa\exception\Logic_Exception('Primary key is not set.');
 		}
+
+		$this->synchronisation_count++;
 
 		$sth = $this->db
 			->prepare("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?");
@@ -234,14 +237,17 @@ abstract class Mother implements \ArrayAccess {
 			}
 		}
 
+		$is_insert = !isset($this->data[static::PRIMARY_KEY_NAME]);
 		$data = $this->data;
 
-		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
+		if ($is_insert) {
 			$data[static::PRIMARY_KEY_NAME] = null;
 		} else {
 			// Update only data that has changed.
 			$data = array_diff($data, $this->last_synchronisation_data);
 		}
+
+		$placeholders = [];
 
 		foreach (array_keys($data) as $property_name) {
 			if (in_array(static::$columns[$property_name]['data_type'], ['datetime', 'timestamp'])) {
@@ -251,67 +257,66 @@ abstract class Mother implements \ArrayAccess {
 			}
 		}
 
-		$placeholders = implode(', ', $placeholders);
+		// If update would not affect database.
+		if ($placeholders) {
+			$placeholders = implode(', ', $placeholders);
 
-		#$this->db->beginTransaction();
+			#$this->db->beginTransaction();
 
-		try {
-			if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
-				$sth = $this->db
-					->prepare("INSERT INTO `" . static::TABLE_NAME . "` SET {$placeholders}");
-			} else {
-				$sth = $this->db
-					->prepare("UPDATE `" . static::TABLE_NAME . "` SET {$placeholders} WHERE `" . static::PRIMARY_KEY_NAME . "` = :" . static::PRIMARY_KEY_NAME);
-
-				$data[static::PRIMARY_KEY_NAME] = $this->data[static::PRIMARY_KEY_NAME];
-			}
-			
-			foreach ($data as $k => $v) {
-				$sth->bindValue($k, $v, isset(self::$parameter_type_map[static::$columns[$k]['data_type']]) ? self::$parameter_type_map[static::$columns[$k]['data_type']] : \PDO::PARAM_STR);
-			}
-			
-			$sth->execute();
-
-			if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
-				$this->data[static::PRIMARY_KEY_NAME] = $this->db->lastInsertId();
-			}
-
-			#var_dump($this->data); exit;
-		} catch (\PDOException $e) {
-			if ($e->getCode() === '23000') {
-				// http://stackoverflow.com/questions/20077309/in-case-of-integrity-constraint-violation-how-to-tell-the-columns-that-are-caus
-				
-				preg_match('/(?<=\')[^\']*(?=\'[^\']*$)/', $e->getMessage(), $match);
-				
-				$indexes = $this->db
-					->prepare("SHOW INDEXES FROM `" . static::TABLE_NAME . "` WHERE `Key_name` = :key_name;")
-					->execute(['key_name' => $match[0]])
-					->fetchAll(\PDO::FETCH_ASSOC);
-				
-				$columns = array_map(function ($e) { return $e['Column_name']; }, $indexes);
-				
-				if (count($columns) > 1) {
-					throw new \gajus\moa\exception\Logic_Exception('"' . implode(', ', $columns) . '" column combination must have a unique value.', 0, $e);
+			try {
+				if ($is_insert) {
+					$sth = $this->db
+						->prepare("INSERT INTO `" . static::TABLE_NAME . "` SET {$placeholders}");
 				} else {
-					throw new \gajus\moa\exception\Logic_Exception('"' . $columns[0] . '" column must have a unique value.', 0, $e);
+					$sth = $this->db
+						->prepare("UPDATE `" . static::TABLE_NAME . "` SET {$placeholders} WHERE `" . static::PRIMARY_KEY_NAME . "` = :" . static::PRIMARY_KEY_NAME);
+
+					$data[static::PRIMARY_KEY_NAME] = $this->data[static::PRIMARY_KEY_NAME];
 				}
-			} else {
-				#var_dump($placeholders, $this->data, $e->getMessage()); exit;
+				
+				foreach ($data as $k => $v) {
+					$sth->bindValue($k, $v, isset(self::$parameter_type_map[static::$columns[$k]['data_type']]) ? self::$parameter_type_map[static::$columns[$k]['data_type']] : \PDO::PARAM_STR);
+				}
+				
+				$sth->execute();
+
+				if ($is_insert) {
+					$this->data[static::PRIMARY_KEY_NAME] = $this->db->lastInsertId();
+				}
+
+				#var_dump($this->data); exit;
+			} catch (\PDOException $e) {
+				if ($e->getCode() === '23000') {
+					// http://stackoverflow.com/questions/20077309/in-case-of-integrity-constraint-violation-how-to-tell-the-columns-that-are-caus
+					
+					preg_match('/(?<=\')[^\']*(?=\'[^\']*$)/', $e->getMessage(), $match);
+					
+					$indexes = $this->db
+						->prepare("SHOW INDEXES FROM `" . static::TABLE_NAME . "` WHERE `Key_name` = :key_name;")
+						->execute(['key_name' => $match[0]])
+						->fetchAll(\PDO::FETCH_ASSOC);
+					
+					$columns = array_map(function ($e) { return $e['Column_name']; }, $indexes);
+					
+					if (count($columns) > 1) {
+						throw new \gajus\moa\exception\Logic_Exception('"' . implode(', ', $columns) . '" column combination must have a unique value.', 0, $e);
+					} else {
+						throw new \gajus\moa\exception\Logic_Exception('"' . $columns[0] . '" column must have a unique value.', 0, $e);
+					}
+				} else {
+					#var_dump($placeholders, $this->data, $e->getMessage()); exit;
+				}
+				
+				throw $e;
 			}
-			
-			throw $e;
-		}
-
-		// @todo Synchronise only if table has columns that have on update trigger.
-
-		$this->synchronise();
-
-		#var_dump($this->data); exit;
 		
-		if (isset($this->data[static::PRIMARY_KEY_NAME])) {
-			$this->afterUpdate();
-		} else {		
+			$this->synchronise();
+		}
+		
+		if ($is_insert) {
 			$this->afterInsert();
+		} else {		
+			$this->afterUpdate();
 		}
 		
 		return $this;
@@ -323,22 +328,22 @@ abstract class Mother implements \ArrayAccess {
 	 * 
 	 * @return gajus\moa\Mother
 	 */
-	final public function delete () {
-		if (!isset($this->data[static::$properties['primary_key_name']])) {
-			throw new \gajus\moa\exception\Logic_Exception('Object\'s primary key value is unset.');
+	public function delete () {
+		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
+			throw new \gajus\moa\exception\Logic_Exception('Cannot delete not initialised object.');
 		}
 		
 		$this->db->beginTransaction();
 		
 		$this->db
-			->prepare("DELETE FROM `" . static::$properties['table_name'] . "` WHERE `" . static::$properties['primary_key_name'] . "` = ?")
-			->execute([$this->data[static::$properties['primary_key_name']]]);
+			->prepare("DELETE FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?")
+			->execute([$this->data[static::PRIMARY_KEY_NAME]]);
 		
 		$this->afterDelete();
 		
 		$this->db->commit();
 		
-		unset($this->data[static::$properties['primary_key_name']]);
+		unset($this->data[static::PRIMARY_KEY_NAME]);
 
 		return $this;
 	}
@@ -371,6 +376,13 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	public function getProperties () {
 		return $this->data;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getSynchronisationCount () {
+		return $this->synchronisation_count;
 	}
 
 	/**

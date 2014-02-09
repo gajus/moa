@@ -29,4 +29,16 @@ class UpdateTest extends PHPUnit_Framework_TestCase {
         $this->assertSame($original_id, $string['id']);
         $this->assertSame('bar', $string['name']);
     }
+
+    public function testDoNotUpdateIfValueHasNotChanged () {
+        $string = new \sandbox\model\String($this->db);
+        $string['name'] = 'foo';
+        $string->save();
+
+        $synchronisation_count = $string->getSynchronisationCount();
+
+        $string->save();
+
+        $this->assertSame($synchronisation_count, $string->getSynchronisationCount());
+    }
 }
