@@ -10,6 +10,10 @@ before_script:
  - wget http://getcomposer.org/composer.phar
  - php composer.phar install --dev --no-interaction
 
+before_script:
+  - sh -c "if [ '$DB' = 'mysql' ]; then mysql -e 'drop database if exists `moa`; create database `moa`;'; fi"
+  - sh -c "if [ '$DB' = 'mysql' ]; then mysql moa < tests/data/moa.sql; fi"
+
 script:
  - mkdir -p build/logs
  - phpunit --coverage-clover build/logs/clover.xml

@@ -291,12 +291,8 @@ abstract class Mother implements \ArrayAccess {
 			throw $e;
 		}
 
-
-
 		// @todo Synchronise only if table has columns that have on update trigger.
 		$this->synchronise();
-
-
 		
 		if (isset($this->data[static::PRIMARY_KEY_NAME])) {
 			$this->afterUpdate();
