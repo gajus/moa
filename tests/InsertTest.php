@@ -4,7 +4,7 @@ class InsertTest extends PHPUnit_Framework_TestCase {
         $db;
 
     public function setUp () {
-        $this->db = new \PDO('mysql:dbname=moa');
+        $this->db = new \PDO('mysql:dbname=moa', 'travis');
         $this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
