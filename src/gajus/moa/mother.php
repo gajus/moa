@@ -176,10 +176,6 @@ abstract class Mother implements \ArrayAccess {
 		// $this->validateInput($data, $value);
 
 		$this->data[$name] = $value;
-
-		#if ($name === static::PRIMARY_KEY_NAME) {
-		#	$this->synchronise();
-		#}
 		
 		return true;
 	}
@@ -289,12 +285,12 @@ abstract class Mother implements \ArrayAccess {
 				if ($e->getCode() === '23000') {
 					// http://stackoverflow.com/questions/20077309/in-case-of-integrity-constraint-violation-how-to-tell-the-columns-that-are-caus
 					
+					// Get name of the key that failed.
 					preg_match('/(?<=\')[^\']*(?=\'[^\']*$)/', $e->getMessage(), $match);
-					
-					$indexes = $this->db
-						->prepare("SHOW INDEXES FROM `" . static::TABLE_NAME . "` WHERE `Key_name` = :key_name;")
-						->execute(['key_name' => $match[0]])
-						->fetchAll(\PDO::FETCH_ASSOC);
+
+					$sth = $this->db->prepare("SHOW INDEXES FROM `" . static::TABLE_NAME . "` WHERE `Key_name` = :key_name;");
+					$sth->execute(['key_name' => $match[0]]);
+					$indexes = $sth->fetchAll(\PDO::FETCH_ASSOC);
 					
 					$columns = array_map(function ($e) { return $e['Column_name']; }, $indexes);
 					
