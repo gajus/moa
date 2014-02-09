@@ -233,6 +233,9 @@ abstract class Mother implements \ArrayAccess {
 			}
 		}
 
+		$before_data = $this->data; // Used to recover in case of Exception in "after" event.
+		$before_last_synchronisation_data = $this->last_synchronisation_data;
+
 		$is_insert = !isset($this->data[static::PRIMARY_KEY_NAME]);
 		$data = $this->data;
 
@@ -257,7 +260,7 @@ abstract class Mother implements \ArrayAccess {
 		if ($placeholders) {
 			$placeholders = implode(', ', $placeholders);
 
-			#$this->db->beginTransaction();
+			$this->db->beginTransaction();
 
 			try {
 				if ($is_insert) {
@@ -282,6 +285,10 @@ abstract class Mother implements \ArrayAccess {
 
 				#var_dump($this->data); exit;
 			} catch (\PDOException $e) {
+				if ($this->db->inTransaction()) {
+					$this->db->rollBack();
+				}
+
 				if ($e->getCode() === '23000') {
 					// http://stackoverflow.com/questions/20077309/in-case-of-integrity-constraint-violation-how-to-tell-the-columns-that-are-caus
 					
@@ -309,10 +316,29 @@ abstract class Mother implements \ArrayAccess {
 			$this->synchronise();
 		}
 		
-		if ($is_insert) {
-			$this->afterInsert();
-		} else {		
-			$this->afterUpdate();
+		try {
+			if ($is_insert) {
+				$this->afterInsert();
+			} else {		
+				$this->afterUpdate();
+			}
+		} catch (\Exception $e) {
+			if ($placeholders) {
+				if ($this->db->inTransaction()) {
+					$this->db->rollBack();
+				}
+
+				$this->data = $before_data;
+				$this->last_synchronisation_data = $before_last_synchronisation_data;
+				$this->synchronisation_count--;
+			}
+
+			throw $e;
+		}
+		
+
+		if ($placeholders) {
+			$this->db->commit();
 		}
 		
 		return $this;
@@ -335,7 +361,15 @@ abstract class Mother implements \ArrayAccess {
 			->prepare("DELETE FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?")
 			->execute([$this->data[static::PRIMARY_KEY_NAME]]);
 		
-		$this->afterDelete();
+		try {
+			$this->afterDelete();
+		} catch (\Exception $e) {
+			if ($this->db->inTransaction()) {
+				$this->db->rollBack();
+			}
+			
+			throw $e;
+		}
 		
 		$this->db->commit();
 		
