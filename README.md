@@ -1,5 +1,8 @@
 # MOA
 
+[![Build Status](https://travis-ci.org/gajus/moa.png?branch=master)](https://travis-ci.org/gajus/moa)
+[![Coverage Status](https://coveralls.io/repos/gajus/moa/badge.png)](https://coveralls.io/r/gajus/moa)
+
 MOA (mother of all) is a database abstraction using [Active Record](http://en.wikipedia.org/wiki/Active_record_pattern) pattern:
 
 > Active record is an approach to accessing data in a database. A database table or view is wrapped into a class. Thus, an object instance is tied to a single row in the table. After creation of an object, a new row is added to the table upon save. Any object loaded gets its information from the database. When an object is updated the corresponding row in the table is also updated. The wrapper class implements accessor methods or properties for each column in the table or view.

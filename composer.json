@@ -1,7 +1,7 @@
 {
 	"name": "gajus/moa",
-	"description": "",
-	"keywords": ["model"],
+	"description": "MOA implements dynamically generated Active Record database abstraction.",
+	"keywords": ["model", "active record"],
 	"homepage": "https://github.com/gajus/moa",
 	"type": "library",
 	"license": "BSD-3-Clause",
