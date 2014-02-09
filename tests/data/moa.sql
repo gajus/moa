@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.35-33.0-log)
 # Database: moa
-# Generation Time: 2014-02-09 13:30:58 +0000
+# Generation Time: 2014-02-09 17:42:53 +0000
 # ************************************************************
 
 
@@ -30,6 +30,23 @@ CREATE TABLE `datetime` (
   `datetime` datetime DEFAULT NULL,
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table duplicate
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `duplicate`;
+
+CREATE TABLE `duplicate` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) DEFAULT NULL,
+  `foo` varchar(100) DEFAULT NULL,
+  `bar` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `foo` (`foo`,`bar`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
