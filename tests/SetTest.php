@@ -26,9 +26,9 @@ class SetTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @expectedException gajus\moa\exception\Logic_Exception
-     * @expectedExceptionMessage Cannot set primary key value.
+     * @expectedExceptionMessage Primary key value cannot be changed.
      */
-    public function testSetPrimaryKeyProperty () {
+    public function testSetPrimaryKeyPropertyOfInflatedObject () {
         $string = new \sandbox\model\String($this->db);
         $string['id'] = 1;
     }

@@ -8,6 +8,22 @@ class GetTest extends PHPUnit_Framework_TestCase {
         $this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
+    public function testGetAllPropertiesOfExistingObject () {
+        $string = new \sandbox\model\String($this->db);
+        $string->save();
+
+        $data = [
+            'id' => null,
+            'name' => ''
+        ];
+
+        $data['id'] = $string['id'];
+
+        $properties = $string->getProperties();
+
+        $this->assertSame($data, $properties);
+    }
+
     public function testGetDefinedProperty () {
         $string = new \sandbox\model\String($this->db);
         $string['name'] = 'Foo';

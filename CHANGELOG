@@ -3,8 +3,13 @@ Todo:
 * Added integer input range comliance check.
 * Check if database representation is the same as model.
 * Add safety check for --clean.
+* Leave it up to the 
 
 Changelog:
+
+0.0.3 / 2014-02-09
+
+* last_synchronisation_data model property is used to identify values that have changed.
 
 0.0.2 / 2014-02-07
 
