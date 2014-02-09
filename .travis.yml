@@ -12,9 +12,9 @@ before_script:
 
 before_script:
   - sh -c "[ -d foo ] || mkdir tests/sandbox/model/moa"
-  - sh -c "php ./bin/build.php --namespace tests/sandbox\model\moa --database moa --clean --path ./tests/sandbox/model/moa"
   - sh -c "if [ '$DB' = 'mysql' ]; then mysql -e 'drop database if exists \`moa\`; create database \`moa\`;'; fi"
   - sh -c "if [ '$DB' = 'mysql' ]; then mysql moa < tests/data/moa.sql; fi"
+  - sh -c "php ./bin/build.php --namespace tests/sandbox\model\moa --database moa --clean --path ./tests/sandbox/model/moa"
 
 script:
  - mkdir -p build/logs
