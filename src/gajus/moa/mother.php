@@ -234,24 +234,16 @@ abstract class Mother implements \ArrayAccess {
 			}
 		}
 
-		// If updating, then primary key must not be part of the placeholder string.
-		// If inserting, then primary key must be part of the placeholder string and must be equal to null.
-		// The latter is required in case all other properties are nullable.
-		$id = null;
+		$data = $this->data;
 
-		if (isset($this->data[static::PRIMARY_KEY_NAME])) {
-			$id = $this->data[static::PRIMARY_KEY_NAME];
-
-			unset($this->data[static::PRIMARY_KEY_NAME]);
+		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
+			$data[static::PRIMARY_KEY_NAME] = null;
 		} else {
-			$this->data[static::PRIMARY_KEY_NAME] = null;
+			// Update only data that has changed.
+			$data = array_diff($data, $this->last_synchronisation_data);
 		}
 
-		$placeholders = [];
-
-		// @todo compare initialisation_data to the current data
-
-		foreach (array_keys($this->data) as $property_name) {
+		foreach (array_keys($data) as $property_name) {
 			if (in_array(static::$columns[$property_name]['data_type'], ['datetime', 'timestamp'])) {
 				$placeholders[] = '`' . $property_name . '` = FROM_UNIXTIME(:' . $property_name . ')';
 			} else {
@@ -264,27 +256,23 @@ abstract class Mother implements \ArrayAccess {
 		#$this->db->beginTransaction();
 
 		try {
-			if ($id) {
+			if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
+				$sth = $this->db
+					->prepare("INSERT INTO `" . static::TABLE_NAME . "` SET {$placeholders}");
+			} else {
 				$sth = $this->db
 					->prepare("UPDATE `" . static::TABLE_NAME . "` SET {$placeholders} WHERE `" . static::PRIMARY_KEY_NAME . "` = :" . static::PRIMARY_KEY_NAME);
 
-				$this->data[static::PRIMARY_KEY_NAME] = $id;
-			} else {
-				$sth = $this->db
-					->prepare("INSERT INTO `" . static::TABLE_NAME . "` SET {$placeholders}");
-
-				$sth->bindValue(static::PRIMARY_KEY_NAME, null, \PDO::PARAM_NULL);
+				$data[static::PRIMARY_KEY_NAME] = $this->data[static::PRIMARY_KEY_NAME];
 			}
 			
-			foreach ($this->data as $k => $v) {
+			foreach ($data as $k => $v) {
 				$sth->bindValue($k, $v, isset(self::$parameter_type_map[static::$columns[$k]['data_type']]) ? self::$parameter_type_map[static::$columns[$k]['data_type']] : \PDO::PARAM_STR);
 			}
 			
 			$sth->execute();
 
-			if ($id) {
-				$this->data[static::PRIMARY_KEY_NAME] = $id;
-			} else {
+			if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
 				$this->data[static::PRIMARY_KEY_NAME] = $this->db->lastInsertId();
 			}
 
@@ -308,13 +296,14 @@ abstract class Mother implements \ArrayAccess {
 					throw new \gajus\moa\exception\Logic_Exception('"' . $columns[0] . '" column must have a unique value.', 0, $e);
 				}
 			} else {
-				var_dump($placeholders, $this->data, $e->getMessage()); exit;
+				#var_dump($placeholders, $this->data, $e->getMessage()); exit;
 			}
 			
 			throw $e;
 		}
 
 		// @todo Synchronise only if table has columns that have on update trigger.
+
 		$this->synchronise();
 
 		#var_dump($this->data); exit;

@@ -20,6 +20,8 @@ class UpdateTest extends PHPUnit_Framework_TestCase {
         $string = new \sandbox\model\String($this->db, $string['id']);
         $string['name'] = 'bar';
         $string->save();
+        
+        $this->assertSame($original_id, $string['id']);
 
         // Inflate
         $string = new \sandbox\model\String($this->db, $string['id']);
