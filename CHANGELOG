@@ -1,6 +1,8 @@
 Todo:
 
 * Added integer input range comliance check.
+* Check if database representation is the same as model.
+* Add safety check for --clean.
 
 Changelog:
 

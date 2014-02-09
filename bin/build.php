@@ -34,7 +34,6 @@ $columns = $db
 		`table_name`,
 		`column_name`,
 		`column_type`,
-		`column_default`,
 		`column_key`,
 		`data_type`,
 		`is_nullable`,
@@ -85,7 +84,7 @@ foreach ($information_schema as $table_name => $columns) {
 
 	$properties = [
 		'{{namespace}}' => $parameters['namespace'],
-		'{{model_name}}' => $table_name,
+		'{{model_name}}' => implode('_', array_map('ucfirst', explode('_', $table_name))),
 		'{{extends}}' => isset($parameters['extends']) ? $parameters['extends'] : '\gajus\moa\Mother',
 		'{{table_name}}' => $table_name,
 		'{{primary_key_name}}' => 'id',

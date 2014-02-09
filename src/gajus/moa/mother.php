@@ -16,16 +16,7 @@ abstract class Mother implements \ArrayAccess {
 			'bigint' => \PDO::PARAM_INT,
 			'smallint' => \PDO::PARAM_INT,
 			'tinyint' => \PDO::PARAM_INT,
-			'mediumint' => \PDO::PARAM_INT,
-			'enum' => \PDO::PARAM_STR,
-			'varchar' => \PDO::PARAM_STR,
-			'date' => \PDO::PARAM_STR,
-			'datetime' => \PDO::PARAM_STR,
-			'timestamp' => \PDO::PARAM_STR,
-			'char' => \PDO::PARAM_STR,
-			'decimal' => \PDO::PARAM_STR,
-			'text' => \PDO::PARAM_STR,
-			'longtext' => \PDO::PARAM_STR
+			'mediumint' => \PDO::PARAM_INT
 		];
 	
 	/**
@@ -65,21 +56,21 @@ abstract class Mother implements \ArrayAccess {
 	 * @return void
 	 */
 	final private function synchronise () {
-		if (!isset($data[static::PRIMARY_KEY_NAME])) {
+		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
 			throw new \gajus\moa\exception\Logic_Exception('Primary key is not set.');
 		}
 
-		$this->data = $this->db
-			->prepare("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?")
-			->execute([$data[static::PRIMARY_KEY_NAME]])
-			->fetch(\PDO::FETCH_ASSOC);
+		$sth = $this->db
+			->prepare("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?");
+		$sth->execute([$this->data[static::PRIMARY_KEY_NAME]]);
+		$this->data = $sth->fetch(\PDO::FETCH_ASSOC);
 
 		if (!$this->data) {
-			throw new \gajus\moa\exception\Record_Not_Found('Primary key value does not refer to an existing record.');
+			throw new \gajus\moa\exception\Record_Not_Found_Exception('Primary key value does not refer to an existing record.');
 		}
 
 		foreach (static::$columns as $name => $column) {
-			if ($column['column_type'] === 'datetime' || $column['column_type'] === 'timestamp') {
+			if (in_array($column['data_type'], ['datetime', 'timestamp'])) {
 				$this->data[$name] = strtotime($this->data[$name]);
 			}
 		}
@@ -102,7 +93,7 @@ abstract class Mother implements \ArrayAccess {
 	 * @return mixed
 	 */
 	public function offsetGet ($offset) {
-		return $this->data[$offset];
+		return $this->get($offset);
 	}
 	
 	/**
@@ -144,9 +135,9 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	public function set ($name, $value = null) {
 		if ($name === static::PRIMARY_KEY_NAME) {
-			throw new \gajus\moa\exception\Logic_Exception('Object primary key value cannot be overwritten.');
+			throw new \gajus\moa\exception\Logic_Exception('Cannot set primary key value.');
 		} else if (!isset(static::$columns[$name])) {
-			throw new \gajus\moa\exception\Logic_Exception('Trying to set non-object property.');
+			throw new \gajus\moa\exception\Undefined_Property_Exception('Trying to set non-object property "' . $name . '".');
 		}
 
 		switch (static::$columns[$name]['data_type']) {
@@ -174,7 +165,7 @@ abstract class Mother implements \ArrayAccess {
 
 			default:
 				if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
-					throw new \gajus\moa\exception\Invalid_Argument_Exception('Property does not conform to column\'s maxiumum character length.');
+					throw new \gajus\moa\exception\Invalid_Argument_Exception('Property does not conform to the column\'s maxiumum character length limit.');
 				}
 				break;
 		}
@@ -196,7 +187,7 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	public function get ($name) {
 		if (!isset(static::$columns[$name])) {
-			throw new \gajus\moa\exception\Undefined_Property_Exception('Trying to get non-object property.');
+			throw new \gajus\moa\exception\Undefined_Property_Exception('Trying to get non-object property "' . $name . '".');
 		}
 		
 		return isset($this->data[$name]) ? $this->data[$name] : null;
@@ -215,52 +206,68 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	final public function save () {
 		foreach (static::$columns as $name => $column) {
-			if (!$column['is_nullable']) {
-				// If property is not nullable, it might be that it has a default value.
-				if (array_key_exists($name, $this->data) && is_null($this->data[$name])) {
-					unset($this->data[$name]);
-				}
+			$property_set = array_key_exists($name, $this->data);
 
-				if (is_null($column['column_default']) && $column['extra'] !== 'auto_increment' && !isset($this->data[$name])) {
-					throw new \gajus\moa\exception\Logic_Exception('Object initialised without required property: "' . $name . '".');
-				}
+			if ($property_set && is_null($this->data[$name])) {
+				unset($this->data[$name]);
+
+				$property_set = false;
+			}
+
+			if (!$column['is_nullable'] && !$property_set && $column['extra'] !== 'auto_increment') {
+				throw new \gajus\moa\exception\Undefined_Property_Exception('Object initialised without required property: "' . $name . '".');
 			}
 		}
-		
-		$data = $this->data;
-		
-		unset($data[static::PRIMARY_KEY_NAME]);
-		
+
+		// If updating, then primary key must not be part of the placeholder string.
+		// If inserting, then primary key must be part of the placeholder string and must be equal to null.
+		// The latter is required in case all other properties are nullable.
+		$id = null;
+
+		if (isset($this->data[static::PRIMARY_KEY_NAME])) {
+			$id = $this->data[static::PRIMARY_KEY_NAME];
+
+			unset($this->data[static::PRIMARY_KEY_NAME]);
+		} else {
+			$this->data[static::PRIMARY_KEY_NAME] = null;
+		}
+
 		$placeholders = [];
 
-		foreach ($data as $name => $value) {
-			if ($value !== null && in_array(static::$columns[$name]['column_type'], ['datetime', 'timestamp'])) {
-				$placeholders[] = '`' . $name . '` = FROM_UNIXTIME(:' . $name . ')';
+		foreach (array_keys($this->data) as $property_name) {
+			if (in_array(static::$columns[$property_name]['data_type'], ['datetime', 'timestamp'])) {
+				$placeholders[] = '`' . $property_name . '` = FROM_UNIXTIME(:' . $property_name . ')';
 			} else {
-				$placeholders[] = '`' . $name . '` = :' . $name;
+				$placeholders[] = '`' . $property_name . '` = :' . $property_name;
 			}
 		}
 
 		$placeholders = implode(', ', $placeholders);
-		
+
+		#$this->db->beginTransaction();
+
 		try {
-			if (isset($this->data[static::PRIMARY_KEY_NAME])) {
+			if ($id) {
 				$sth = $this->db
 					->prepare("UPDATE `" . static::TABLE_NAME . "` SET {$placeholders} WHERE `" . static::PRIMARY_KEY_NAME . "` = :" . static::PRIMARY_KEY_NAME);
 			} else {
 				$sth = $this->db
 					->prepare("INSERT INTO `" . static::TABLE_NAME . "` SET {$placeholders}");
+
+				$sth->bindValue(static::PRIMARY_KEY_NAME, null, \PDO::PARAM_NULL);
 			}
 			
 			foreach ($this->data as $k => $v) {
-				if (!isset(self::$parameter_type_map[static::$columns[$k]['data_type']])) {
-					throw new \gajus\moa\Unexpected_Value_Exception('Unknown data type.');
-				}
-
-				$sth->bindValue($k, $v, self::$parameter_type_map[static::$columns[$k]['data_type']]);
+				$sth->bindValue($k, $v, isset(self::$parameter_type_map[static::$columns[$k]['data_type']]) ? self::$parameter_type_map[static::$columns[$k]['data_type']] : \PDO::PARAM_STR);
 			}
 			
 			$sth->execute();
+
+			if ($id) {
+				$this->data[static::PRIMARY_KEY_NAME] = $id;
+			} else {
+				$this->data[static::PRIMARY_KEY_NAME] = $this->db->lastInsertId();
+			}
 		} catch (\PDOException $e) {
 			if ($e->getCode() === '23000') {
 				// http://stackoverflow.com/questions/20077309/in-case-of-integrity-constraint-violation-how-to-tell-the-columns-that-are-caus
@@ -283,17 +290,19 @@ abstract class Mother implements \ArrayAccess {
 			
 			throw $e;
 		}
+
+
+
+		// @todo Synchronise only if table has columns that have on update trigger.
+		$this->synchronise();
+
+
 		
 		if (isset($this->data[static::PRIMARY_KEY_NAME])) {
 			$this->afterUpdate();
-		} else {
-			$this->data[static::PRIMARY_KEY_NAME] = $this->db->lastInsertId();
-		
+		} else {		
 			$this->afterInsert();
 		}
-		
-		// @todo Synchronise only if table has columns that have on update trigger.
-		$this->synchronise();
 		
 		return $this;
 	}
