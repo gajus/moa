@@ -34,7 +34,13 @@ class SetTest extends PHPUnit_Framework_TestCase {
         $greedy_timestamp->save();
     }
 
-    // Test datetime that has a default value and is not nullable.
+    public function testSetDatetimePropertyUsingDatetime () {
+        $datetime = new \Sandbox\Model\Datetime($this->db);
+        $datetime['datetime'] = '2014-01-02 05:31:20';
+        $datetime->save();
+
+        $this->assertSame(strtotime('2014-01-02 05:31:20'), $datetime['datetime']);
+    }
 
     /**
      * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
@@ -57,7 +63,7 @@ class SetTest extends PHPUnit_Framework_TestCase {
     /**
      * @dataProvider setDatetimePropertyProvider
      * @expectedException Gajus\MOA\Exception\InvalidArgumentException
-     * @expectedExceptionMessage Propery must be a decimal digit.
+     * @expectedExceptionMessage Propery must be either decimal UNIX timestamp or MySQL datetime string.
      */
     public function testSetDatetimeProperty ($property_name) {
         $datetime = new \Sandbox\Model\Datetime($this->db);

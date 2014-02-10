@@ -147,9 +147,16 @@ abstract class Mother implements \ArrayAccess {
 			switch (static::$columns[$name]['data_type']) {
 				case 'datetime':
 				case 'timestamp':
-					// @todo Accept DateTime
+					if (is_string($value)) {
+						$datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
+
+						if ($datetime) {
+							$value = $datetime->getTimestamp();
+						}
+					}
+
 					if (!is_int($value) && !ctype_digit($value)) {
-						throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be a decimal digit.');
+						throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be either decimal UNIX timestamp or MySQL datetime string.');
 					}
 					
 					break;
