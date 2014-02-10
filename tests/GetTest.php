@@ -14,7 +14,7 @@ class GetTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testGetAllPropertiesOfExistingObject () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string->save();
 
         $data = [
@@ -30,18 +30,18 @@ class GetTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testGetDefinedProperty () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'Foo';
 
         $this->assertSame('Foo', $string['name']);
     }
 
     /**
-     * @expectedException gajus\moa\exception\Undefined_Property_Exception
+     * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
      * @expectedExceptionMessage Trying to get non-object property "undefined_property".
      */
     public function testGetUndefinedProperty () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['undefined_property'];
     }
 
@@ -51,7 +51,7 @@ class GetTest extends PHPUnit_Framework_TestCase {
     public function testGetDatetimeProperty ($property_name) {
         $arbitrary_timestamp = time();
 
-        $datetime = new \sandbox\model\Datetime($this->db);
+        $datetime = new \Sandbox\Model\Datetime($this->db);
         $datetime[$property_name] = $arbitrary_timestamp;
 
         $datetime->save();
@@ -67,7 +67,7 @@ class GetTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testIssetDefinedProperty () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
 
         $string['name'] = 'Foo';
         
@@ -75,7 +75,7 @@ class GetTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testIssetUndefinedProperty () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         
         $this->assertFalse(isset($string['undefined_property']));
     }
@@ -84,7 +84,7 @@ class GetTest extends PHPUnit_Framework_TestCase {
      * @dataProvider unsetPropertyProvider
      */
     public function testUnsetProperty ($property_name) {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         
         unset($string[$property_name]);
     }

@@ -14,37 +14,37 @@ class SetTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testSetProperty () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'Test';
 
         $this->assertSame('Test', $string['name']);
     }
 
     /**
-     * @expectedException gajus\moa\exception\Undefined_Property_Exception
+     * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
      * @expectedExceptionMessage Trying to set non-object property "undefined_property".
      */
     public function testSetUndefinedProperty () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['undefined_property'] = 'test';
     }
 
     /**
-     * @expectedException gajus\moa\exception\Logic_Exception
+     * @expectedException Gajus\MOA\Exception\LogicException
      * @expectedExceptionMessage Primary key value cannot be changed.
      */
     public function testSetPrimaryKeyPropertyOfInflatedObject () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['id'] = 1;
     }
 
     /**
      * @dataProvider setDatetimePropertyProvider
-     * @expectedException gajus\moa\exception\Invalid_Argument_Exception
+     * @expectedException Gajus\MOA\Exception\InvalidArgumentException
      * @expectedExceptionMessage Propery must be a decimal digit.
      */
     public function testSetDatetimeProperty ($property_name) {
-        $datetime = new \sandbox\model\Datetime($this->db);
+        $datetime = new \Sandbox\Model\Datetime($this->db);
         $datetime[$property_name] = 'test';
     }
 
@@ -57,11 +57,11 @@ class SetTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @dataProvider setNumberPropertyProvider
-     * @expectedException gajus\moa\exception\Invalid_Argument_Exception
+     * @expectedException Gajus\MOA\Exception\InvalidArgumentException
      * @expectedExceptionMessage Propery must be a decimal digit.
      */
     public function testSetNumberProperty ($property_name) {
-        $number = new \sandbox\model\Number($this->db);
+        $number = new \Sandbox\Model\Number($this->db);
         $number[$property_name] = 'foo';
     }
 
@@ -79,11 +79,11 @@ class SetTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException gajus\moa\exception\Invalid_Argument_Exception
+     * @expectedException Gajus\MOA\Exception\InvalidArgumentException
      * @expectedExceptionMessage Property does not conform to the column's maxiumum character length limit
      */
     public function testSetTooLongPropertyValue () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = str_repeat('a', 101);
     }
 

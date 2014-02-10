@@ -19,7 +19,7 @@ class EventTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionCode 1
      */
     public function testAfterInsert () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'throw_after_insert';
         $string->save();
     }
@@ -27,7 +27,7 @@ class EventTest extends PHPUnit_Framework_TestCase {
     public function testAfterInsertRecover () {
         $properties = ['name' => 'throw_after_insert'];
 
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string->populate($properties);
         
         try {
@@ -42,14 +42,14 @@ class EventTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionCode 2
      */
     public function testAfterUpdate () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'throw_after_update';
         $string->save();
         $string->save();
     }
 
     public function testAfterUpdateRecover () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'throw_after_update';
         $string->save();
 
@@ -67,14 +67,14 @@ class EventTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionCode 3
      */
     public function testAfterDelete () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'throw_after_delete';
         $string->save();
         $string->delete();
     }
 
     public function testAfterDeleteRecover () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'throw_after_delete';
         $string->save();
 

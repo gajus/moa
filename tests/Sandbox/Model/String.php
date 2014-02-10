@@ -1,7 +1,7 @@
 <?php
-namespace sandbox\model;
+namespace Sandbox\Model;
 
-class String extends \sandbox\model\moa\String {
+class String extends \Sandbox\Model\MOA\String {
     public function afterInsert () {
         if ($this->data['name'] === 'throw_after_insert') {
             throw new \RuntimeException('', 1);

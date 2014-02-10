@@ -14,7 +14,7 @@ class DeleteTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testDelete () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'foo';
         $string->save();
         $string->delete();
@@ -23,11 +23,11 @@ class DeleteTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException gajus\moa\exception\Logic_Exception
+     * @expectedException Gajus\MOA\Exception\LogicException
      * @expectedExceptionMessage Cannot delete not initialised object.
      */
     public function testDeleteNotExistingObject () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string->delete();
     }
 }

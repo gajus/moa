@@ -56,15 +56,13 @@ gajus\moa\Mother
 
 ## Naming convention
 
-MOA assumes that your models are writen using underscore convention (e.g. `my_table_name`). Table names must be singular (e.g. `car` not `cars`). MOA generated models will use underscore convention.
-
-While it is advised that you follow the same naming convention, models that extend MOA generated models can have any name.
+MOA assumes that your models are writen using CamelCase convention (e.g. `MyTableName`). Table names must be singular (e.g. `Car` not `Cars`). MOA generated models will use CamelCase convention.
 
 ## Example
 
 ```php
 <?php
-$car = new \my\app\model\Car($db); // $db is PDO instance
+$car = new \My\App\Model\Car($db); // $db is PDO instance
 $car['colour'] = 'red';
 $car->save();
 
@@ -79,7 +77,7 @@ Take a look at the tests as they contain many more examples.
 
 If you want to inject logic between Mother and the generated models, you need to:
 
-1. Extend `gajus\moa\Mother` class.
+1. Extend `Gajus\MOA\Mother` class.
 2. Build models using `--extends` property with the name of that class.
 
 ### Individual models
@@ -88,9 +86,9 @@ Models generated using MOA are `abstract`. Therefore, you need to extend each mo
 
 ```php
 <?php
-namespace my\app\model;
+namespace My\App\Model;
 
-class Car extends \dynamically\generated\Car {
+class Car extends \Dynamically\Generated\Car {
     static public function getLastBought (\PDO $db) {
         $car = $db->query("SELECT `" . static::$properties['primary_key_name'] . "` FROM `" . static::$properties['table_name'] . "` ORDER BY `purchase_datetime` DESC LIMIT 1");
         
@@ -121,12 +119,12 @@ Models are built using `./bin/build.php` CLI script. The following parameters ar
 --user MySQL database user.
 --password MySQL database password.
 --namespace [required] PHP class namespace;
---extends PHP class to extend. Defaults to \gajus\moa\Mother.
+--extends PHP class to extend. Defaults to \Gajus\MOA\Mother.
 --clean Whipe out the directory.
 ```
 
 e.g., the examples used for unit testing are built using:
 
 ```
-php ./bin/build.php --namespace "sandbox\model\moa" --database "moa" --clean --path "./tests/sandbox/model/moa"
+php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --clean --path "./tests/Sandbox/Model/MOA"
 ```

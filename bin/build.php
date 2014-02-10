@@ -84,14 +84,14 @@ foreach ($information_schema as $table_name => $columns) {
 
 	$properties = [
 		'{{namespace}}' => $parameters['namespace'],
-		'{{model_name}}' => implode('_', array_map('ucfirst', explode('_', $table_name))),
-		'{{extends}}' => isset($parameters['extends']) ? $parameters['extends'] : '\gajus\moa\Mother',
+		'{{model_name}}' => implode('', array_map('ucfirst', explode('_', $table_name))),
+		'{{extends}}' => isset($parameters['extends']) ? $parameters['extends'] : '\Gajus\MOA\Mother',
 		'{{table_name}}' => $table_name,
 		'{{primary_key_name}}' => 'id',
 		'{{columns}}' => var_export($columns, true)
 	];
 
-	file_put_contents($parameters['path'] . '/' . $table_name . '.php', str_replace(array_keys($properties), array_values($properties), $model_template));
+	file_put_contents($parameters['path'] . '/' . $properties['{{model_name}}'] . '.php', str_replace(array_keys($properties), array_values($properties), $model_template));
 }
 
 echo 'Ok' . PHP_EOL;

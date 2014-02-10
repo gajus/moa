@@ -1,5 +1,5 @@
 <?php
-namespace gajus\moa;
+namespace Gajus\MOA;
 
 /**
  * @link https://github.com/gajus/moa for the canonical source repository
@@ -54,7 +54,7 @@ abstract class Mother implements \ArrayAccess {
 		} else if (is_array($data)) {
 			if (isset($data[static::PRIMARY_KEY_NAME])) {
 				if ($diff = array_keys(array_diff_key(static::$columns, $data))) {
-					throw new \gajus\moa\exception\Undefined_Property_Exception('Cannot inflate existing object without all properties. Missing "' . implode(', ', $diff) . '".');
+					throw new \Gajus\MOA\Exception\UndefinedPropertyException('Cannot inflate existing object without all properties. Missing "' . implode(', ', $diff) . '".');
 				}
 
 				$this->data[static::PRIMARY_KEY_NAME] = $data[static::PRIMARY_KEY_NAME];
@@ -66,7 +66,7 @@ abstract class Mother implements \ArrayAccess {
 		} else if (is_null($data)) {
 			$this->data = [];
 		} else {
-			throw new \gajus\moa\exception\Invalid_Argument_Exception('Invalid argument type.');
+			throw new \Gajus\MOA\Exception\InvalidArgumentException('Invalid argument type.');
 		}
 	}
 
@@ -77,7 +77,7 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	final private function synchronise () {
 		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
-			throw new \gajus\moa\exception\Logic_Exception('Primary key is not set.');
+			throw new \Gajus\MOA\Exception\Logic_Exception('Primary key is not set.');
 		}
 
 		$this->synchronisation_count++;
@@ -88,12 +88,12 @@ abstract class Mother implements \ArrayAccess {
 		$this->data = $sth->fetch(\PDO::FETCH_ASSOC);
 
 		if (!$this->data) {
-			throw new \gajus\moa\exception\Record_Not_Found_Exception('Primary key value does not refer to an existing record.');
+			throw new \Gajus\MOA\Exception\RecordNotFoundException('Primary key value does not refer to an existing record.');
 		}
 
 		foreach (static::$columns as $name => $column) {
 			if (!array_key_exists($name, $this->data)) {
-				throw new \gajus\moa\exception\Logic_Exception('Model does not reflect table.');
+				throw new \Gajus\MOA\Exception\LogicException('Model does not reflect table.');
 			}
 
 			if (in_array($column['data_type'], ['datetime', 'timestamp'])) {
@@ -117,7 +117,7 @@ abstract class Mother implements \ArrayAccess {
 	 * Shorthand method to pass each array key, value pair to the setter.
 	 *
 	 * @param array $data
-	 * @return gajus\moa\Mother
+	 * @return gajus\MOA\Mother
 	 */
 	public function populate (array $data) {
 		foreach ($data as $name => $value) {
@@ -134,9 +134,9 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	public function set ($name, $value = null) {
 		if ($name === static::PRIMARY_KEY_NAME) {
-			throw new \gajus\moa\exception\Logic_Exception('Primary key value cannot be changed.');
+			throw new \Gajus\MOA\Exception\LogicException('Primary key value cannot be changed.');
 		} else if (!isset(static::$columns[$name])) {
-			throw new \gajus\moa\exception\Undefined_Property_Exception('Trying to set non-object property "' . $name . '".');
+			throw new \Gajus\MOA\Exception\UndefinedPropertyException('Trying to set non-object property "' . $name . '".');
 		}
 
 		switch (static::$columns[$name]['data_type']) {
@@ -144,7 +144,7 @@ abstract class Mother implements \ArrayAccess {
 			case 'timestamp':
 				// @todo Accept DateTime
 				if (!is_int($value) && !ctype_digit($value)) {
-					throw new \gajus\moa\exception\Invalid_Argument_Exception('Propery must be a decimal digit.');
+					throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be a decimal digit.');
 				}
 				
 				break;
@@ -155,7 +155,7 @@ abstract class Mother implements \ArrayAccess {
 			case 'int':
 			case 'bigint':
 				if (!is_int($value) && !ctype_digit($value)) {
-					throw new \gajus\moa\exception\Invalid_Argument_Exception('Propery must be a decimal digit.');
+					throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be a decimal digit.');
 				}
 
 				// @todo check range
@@ -164,7 +164,7 @@ abstract class Mother implements \ArrayAccess {
 
 			default:
 				if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
-					throw new \gajus\moa\exception\Invalid_Argument_Exception('Property does not conform to the column\'s maxiumum character length limit.');
+					throw new \Gajus\MOA\Exception\InvalidArgumentException('Property does not conform to the column\'s maxiumum character length limit.');
 				}
 				break;
 		}
@@ -186,7 +186,7 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	public function get ($name) {
 		if (!isset(static::$columns[$name])) {
-			throw new \gajus\moa\exception\Undefined_Property_Exception('Trying to get non-object property "' . $name . '".');
+			throw new \Gajus\MOA\Exception\UndefinedPropertyException('Trying to get non-object property "' . $name . '".');
 		}
 		
 		return isset($this->data[$name]) ? $this->data[$name] : null;
@@ -214,7 +214,7 @@ abstract class Mother implements \ArrayAccess {
 	 * this method will either attempt to insert the object to the database or update an
 	 * existing entry.
 	 *
-	 * @return gajus\moa\Mother
+	 * @return gajus\MOA\Mother
 	 */
 	public function save () {
 		$required_properties = array_keys($this->getRequiredProperties());
@@ -229,7 +229,7 @@ abstract class Mother implements \ArrayAccess {
 			}
 
 			if (!$property_set && in_array($name, $required_properties)) {
-				throw new \gajus\moa\exception\Undefined_Property_Exception('Object initialised without required property: "' . $name . '".');
+				throw new \Gajus\MOA\Exception\UndefinedPropertyException('Object initialised without required property: "' . $name . '".');
 			}
 		}
 
@@ -302,9 +302,9 @@ abstract class Mother implements \ArrayAccess {
 					$columns = array_map(function ($e) { return $e['Column_name']; }, $indexes);
 					
 					if (count($columns) > 1) {
-						throw new \gajus\moa\exception\Logic_Exception('"' . implode(', ', $columns) . '" column combination must have a unique value.', 0, $e);
+						throw new \Gajus\MOA\Exception\LogicException('"' . implode(', ', $columns) . '" column combination must have a unique value.', 0, $e);
 					} else {
-						throw new \gajus\moa\exception\Logic_Exception('"' . $columns[0] . '" column must have a unique value.', 0, $e);
+						throw new \Gajus\MOA\Exception\LogicException('"' . $columns[0] . '" column must have a unique value.', 0, $e);
 					}
 				} else {
 					#var_dump($placeholders, $this->data, $e->getMessage()); exit;
@@ -348,11 +348,11 @@ abstract class Mother implements \ArrayAccess {
 	 * Delete object from the database. Deleted object retains its data except for the primary key value.
 	 * Saving deleted object will cause the object to be created with a new primary key value.
 	 * 
-	 * @return gajus\moa\Mother
+	 * @return gajus\MOA\Mother
 	 */
 	public function delete () {
 		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
-			throw new \gajus\moa\exception\Logic_Exception('Cannot delete not initialised object.');
+			throw new \Gajus\MOA\Exception\LogicException('Cannot delete not initialised object.');
 		}
 		
 		$this->db->beginTransaction();

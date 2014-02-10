@@ -14,56 +14,56 @@ class InflateTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testInflateUsingPrimaryKey () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
 
         $string->save();
 
         $properties = $string->getProperties();
 
-        $string = new \sandbox\model\String($this->db, $string['id']);
+        $string = new \Sandbox\Model\String($this->db, $string['id']);
 
         $this->assertSame($properties, $string->getProperties());
     }
 
     /**
-     * @expectedException gajus\moa\exception\Record_Not_Found_Exception
+     * @expectedException Gajus\MOA\Exception\RecordNotFoundException
      * @expectedExceptionMessage Primary key value does not refer to an existing record.
      */
     public function testInflateUsingNotExistingPrimaryKey () {
-        new \sandbox\model\String($this->db, -1);
+        new \Sandbox\Model\String($this->db, -1);
     }
 
     /**
-     * @expectedException gajus\moa\exception\Invalid_Argument_Exception
+     * @expectedException Gajus\MOA\Exception\InvalidArgumentException
      * @expectedExceptionMessage Invalid argument type.
      */
     public function testInflateUsingInvalidData () {
-        new \sandbox\model\String($this->db, 'foobar');
+        new \Sandbox\Model\String($this->db, 'foobar');
     }
 
     public function testInflateUsingAllProperties () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string->save();
 
         $properties = $string->getProperties();
 
-        $string = new \sandbox\model\String($this->db, $properties);
+        $string = new \Sandbox\Model\String($this->db, $properties);
 
         $this->assertSame($properties, $string->getProperties());
     }
 
     /**
-     * @expectedException gajus\moa\exception\Undefined_Property_Exception
+     * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
      * @expectedExceptionMessage Cannot inflate existing object without all properties. Missing "name".
      */
     public function testInflateUsingSomeProperties () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string->save();
 
         $properties = $string->getProperties();
 
         unset($properties['name']);
 
-        $string = new \sandbox\model\String($this->db, $properties);
+        $string = new \Sandbox\Model\String($this->db, $properties);
     }
 }

@@ -15,28 +15,28 @@ class UpdateTest extends PHPUnit_Framework_TestCase {
 
     public function testUpdateProperty () {
         // Insert
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'foo';
         $string->save();
 
         $original_id = $string['id'];
 
         // Inflate, update
-        $string = new \sandbox\model\String($this->db, $string['id']);
+        $string = new \Sandbox\Model\String($this->db, $string['id']);
         $string['name'] = 'bar';
         $string->save();
         
         $this->assertSame($original_id, $string['id']);
 
         // Inflate
-        $string = new \sandbox\model\String($this->db, $string['id']);
+        $string = new \Sandbox\Model\String($this->db, $string['id']);
 
         $this->assertSame($original_id, $string['id']);
         $this->assertSame('bar', $string['name']);
     }
 
     public function testDoNotUpdateIfValueHasNotChanged () {
-        $string = new \sandbox\model\String($this->db);
+        $string = new \Sandbox\Model\String($this->db);
         $string['name'] = 'foo';
         $string->save();
 
@@ -48,15 +48,15 @@ class UpdateTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException gajus\moa\exception\Logic_Exception
+     * @expectedException Gajus\MOA\Exception\LogicException
      * @expectedExceptionMessage "name" column must have a unique value.
      */
     public function testUpdateUsingDuplicateValue () {
-        $string = new \sandbox\model\Duplicate($this->db);
+        $string = new \Sandbox\Model\Duplicate($this->db);
         $string['name'] = 'Foo';
         $string->save();
 
-        $string = new \sandbox\model\Duplicate($this->db);
+        $string = new \Sandbox\Model\Duplicate($this->db);
         $string['name'] = 'bar';
         $string->save();
         $string['name'] = 'Foo';
@@ -64,16 +64,16 @@ class UpdateTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException gajus\moa\exception\Logic_Exception
+     * @expectedException Gajus\MOA\Exception\LogicException
      * @expectedExceptionMessage "foo, bar" column combination must have a unique value.
      */
     public function testUpdateDuplicateValueCombination () {
-        $string = new \sandbox\model\Duplicate($this->db);
+        $string = new \Sandbox\Model\Duplicate($this->db);
         $string['foo'] = 'foo';
         $string['bar'] = 'bar';
         $string->save();
 
-        $string = new \sandbox\model\Duplicate($this->db);
+        $string = new \Sandbox\Model\Duplicate($this->db);
         $string['foo'] = 'x';
         $string['bar'] = 'x';
         $string->save();

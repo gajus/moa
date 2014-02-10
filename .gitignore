@@ -1,2 +1,4 @@
-tests/sandbox/model/moa/*
+vendor/
+composer.lock
+tests/Sandbox/Model/MOA/*
 report/
