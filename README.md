@@ -113,7 +113,7 @@ You don't need to set anything else since all of the properties are already popu
 Models are built using `./bin/build.php` CLI script. The following parameters are available:
 
 ```
---path [required] Path to the directory where the models will be constructed.
+--path [required] Path to the directory where the models will be created.
 --database [required] MySQL database name.
 --host MySQL database host.
 --user MySQL database user.
@@ -127,3 +127,5 @@ e.g., the examples used for unit testing are built using:
 ```
 php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --path "./tests/Sandbox/Model/MOA"
 ```
+
+All files will be deleted from the path. Therefore, the path must include empty `.moa` file. This is a security measure to avoid accidentally truncating wrong path.
