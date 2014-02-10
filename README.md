@@ -120,11 +120,10 @@ Models are built using `./bin/build.php` CLI script. The following parameters ar
 --password MySQL database password.
 --namespace [required] PHP class namespace;
 --extends PHP class to extend. Defaults to \Gajus\MOA\Mother.
---clean Whipe out the directory.
 ```
 
 e.g., the examples used for unit testing are built using:
 
 ```
-php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --clean --path "./tests/Sandbox/Model/MOA"
+php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --path "./tests/Sandbox/Model/MOA"
 ```

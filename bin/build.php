@@ -3,7 +3,7 @@ if (php_sapi_name() !== 'cli') {
 	throw new \RuntimeException('Interface is not "cli".');
 }
 
-$parameters = getopt('', ['path:', 'host:', 'database:', 'user:', 'password:', 'namespace:', 'extends:', 'clean']);
+$parameters = getopt('', ['path:', 'host:', 'database:', 'user:', 'password:', 'namespace:', 'extends:']);
 
 if (empty($parameters['database'])) {
 	throw new \RuntimeException('"database" parameter is empty.');
@@ -16,7 +16,9 @@ if (empty($parameters['namespace'])) {
 if (empty($parameters['path'])) {
 	throw new \RuntimeException('"path" parameter is empty.');
 } else if (!is_dir($parameters['path'])) {
-	throw new \RuntimeException('"path" does not refer to an existing directory.');
+	throw new \RuntimeException('Supplied path does not refer to an existing directory.');
+} else if (!file_exists(realpath($parameters['path']) . '/.moa')) {
+	throw new \RuntimeException('Supplied path must have file ".moa".');
 }
 
 $parameters['path'] = realpath($parameters['path']);
@@ -57,13 +59,17 @@ foreach ($columns as $column) {
 
 unset($columns);
 
-if (array_key_exists('clean', $parameters)) {
-	$models = glob($parameters['path'] . '/*.php');
+$files = glob($parameters['path'] . '/{.[!.]*,*}', \GLOB_BRACE);
 
-	foreach ($models as $model_file) {
-		if(@unlink($model_file) === false) {
-			throw new \RuntimeException('Insufficient permissions.');
-		}
+foreach ($files as $file) {
+	$basename = basename($file);
+	
+	if (strpos($basename, '.') === 0) {
+		continue;
+	}
+
+	if(@unlink($file) === false) {
+		throw new \RuntimeException('Insufficient permissions.');
 	}
 }
 
