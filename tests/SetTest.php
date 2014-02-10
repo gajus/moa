@@ -9,6 +9,7 @@ class SetTest extends PHPUnit_Framework_TestCase {
         $this->db->exec("TRUNCATE TABLE `datetime`");
         $this->db->exec("TRUNCATE TABLE `duplicate`");
         $this->db->exec("TRUNCATE TABLE `greedy`");
+        $this->db->exec("TRUNCATE TABLE `greedy_timestamp`");
         $this->db->exec("TRUNCATE TABLE `number`");
         $this->db->exec("TRUNCATE TABLE `string`");
     }
@@ -26,6 +27,14 @@ class SetTest extends PHPUnit_Framework_TestCase {
 
         $this->assertSame(null, $string['tinyint']);
     }
+
+    public function testSetDefaultablePropertyToNull () {
+        $greedy_timestamp = new \Sandbox\Model\GreedyTimestamp($this->db);
+        $greedy_timestamp['timestamp'] = null;
+        $greedy_timestamp->save();
+    }
+
+    // Test datetime that has a default value and is not nullable.
 
     /**
      * @expectedException Gajus\MOA\Exception\UndefinedPropertyException

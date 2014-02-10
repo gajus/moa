@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.35-33.0-log)
 # Database: moa
-# Generation Time: 2014-02-09 17:42:53 +0000
+# Generation Time: 2014-02-10 05:24:21 +0000
 # ************************************************************
 
 
@@ -59,6 +59,19 @@ DROP TABLE IF EXISTS `greedy`;
 CREATE TABLE `greedy` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table greedy_timestamp
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `greedy_timestamp`;
+
+CREATE TABLE `greedy_timestamp` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

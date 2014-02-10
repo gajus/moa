@@ -37,6 +37,7 @@ $columns = $db
 		`column_name`,
 		`column_type`,
 		`column_key`,
+		`column_default`,
 		`data_type`,
 		`is_nullable`,
 		`extra`,

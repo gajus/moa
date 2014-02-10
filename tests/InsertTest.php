@@ -9,6 +9,7 @@ class InsertTest extends PHPUnit_Framework_TestCase {
         $this->db->exec("TRUNCATE TABLE `datetime`");
         $this->db->exec("TRUNCATE TABLE `duplicate`");
         $this->db->exec("TRUNCATE TABLE `greedy`");
+        $this->db->exec("TRUNCATE TABLE `greedy_timestamp`");
         $this->db->exec("TRUNCATE TABLE `number`");
         $this->db->exec("TRUNCATE TABLE `string`");
     }
@@ -16,6 +17,11 @@ class InsertTest extends PHPUnit_Framework_TestCase {
     public function testInsertWithAllDefaultValues () {
         $string = new \Sandbox\Model\String($this->db);
         $string->save();
+    }
+
+    public function testNotNullableButDefault () {
+        $greedy_timestamp = new \Sandbox\Model\GreedyTimestamp($this->db);
+        $greedy_timestamp->save();
     }
 
     public function testInsert () {

@@ -139,7 +139,9 @@ abstract class Mother implements \ArrayAccess {
 			throw new \Gajus\MOA\Exception\UndefinedPropertyException('Trying to set non-object property "' . $name . '".');
 		}
 
-		if (is_null($value) && static::$columns[$name]['is_nullable']) {
+		if (is_null($value) && !in_array($name, array_keys($this->getRequiredProperties()))) {
+
+
 
 		} else {
 			switch (static::$columns[$name]['data_type']) {
@@ -205,7 +207,7 @@ abstract class Mother implements \ArrayAccess {
 		$required_properties = [];
 
 		foreach (static::$columns as $name => $column) {
-			if (!$column['is_nullable'] && $column['extra'] !== 'auto_increment') {
+			if (!$column['is_nullable'] && empty($column['column_default']) && $column['extra'] !== 'auto_increment') {
 				$required_properties[$name] = $column;
 			}
 		}
