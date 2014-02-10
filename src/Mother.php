@@ -139,35 +139,39 @@ abstract class Mother implements \ArrayAccess {
 			throw new \Gajus\MOA\Exception\UndefinedPropertyException('Trying to set non-object property "' . $name . '".');
 		}
 
-		switch (static::$columns[$name]['data_type']) {
-			case 'datetime':
-			case 'timestamp':
-				// @todo Accept DateTime
-				if (!is_int($value) && !ctype_digit($value)) {
-					throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be a decimal digit.');
-				}
-				
-				break;
+		if (is_null($value) && static::$columns[$name]['is_nullable']) {
 
-			case 'tinyint':
-			case 'smallint':
-			case 'mediumint':
-			case 'int':
-			case 'bigint':
-				if (!is_int($value) && !ctype_digit($value)) {
-					throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be a decimal digit.');
-				}
+		} else {
+			switch (static::$columns[$name]['data_type']) {
+				case 'datetime':
+				case 'timestamp':
+					// @todo Accept DateTime
+					if (!is_int($value) && !ctype_digit($value)) {
+						throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be a decimal digit.');
+					}
+					
+					break;
 
-				// @todo check range
+				case 'tinyint':
+				case 'smallint':
+				case 'mediumint':
+				case 'int':
+				case 'bigint':
+					if (!is_int($value) && !ctype_digit($value)) {
+						throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be a decimal digit.');
+					}
 
-				break;
+					// @todo check range
 
-			default:
-				if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
-					throw new \Gajus\MOA\Exception\InvalidArgumentException('Property does not conform to the column\'s maxiumum character length limit.');
-				}
-				break;
-		}
+					break;
+
+				default:
+					if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
+						throw new \Gajus\MOA\Exception\InvalidArgumentException('Property does not conform to the column\'s maxiumum character length limit.');
+					}
+					break;
+			}
+		}		
 		
 		if (array_key_exists($name, $this->data) && $this->data[$name] === $value) {
 			return false;

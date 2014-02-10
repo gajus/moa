@@ -20,6 +20,13 @@ class SetTest extends PHPUnit_Framework_TestCase {
         $this->assertSame('Test', $string['name']);
     }
 
+    public function testSetNullablePropertyToNull () {
+        $string = new \Sandbox\Model\Number($this->db);
+        $string['tinyint'] = null;
+
+        $this->assertSame(null, $string['tinyint']);
+    }
+
     /**
      * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
      * @expectedExceptionMessage Trying to set non-object property "undefined_property".
