@@ -104,7 +104,7 @@ class Car extends \Dynamically\Generated\Car {
 }
 ```
 
-> MOA convention is to prefix method names "getMany" for methods that return array and "get" that return instance of Mother.
+> MOA convention is to prefix method names "getMany[Where]" for methods that return array and "get[Where]" that return instance of Mother.
 
 You don't need to set anything else since all of the properties are already populated in the generated model. To view what properties are available for each table, refer to the generated models.
 
