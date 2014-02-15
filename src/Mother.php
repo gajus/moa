@@ -71,6 +71,15 @@ abstract class Mother implements \ArrayAccess {
 	}
 
 	/**
+	 * Get object data as associative array.
+	 *
+	 * @return array
+	 */
+	public function getData () {
+        return $this->data;
+    }
+
+	/**
 	 * Use the primary key to update object instance with the data from the database.
 	 * 
 	 * @return void
