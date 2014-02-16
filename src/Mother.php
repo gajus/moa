@@ -304,32 +304,9 @@ abstract class Mother implements \ArrayAccess {
 				if ($is_insert) {
 					$this->data[static::PRIMARY_KEY_NAME] = $this->db->lastInsertId();
 				}
-
-				#var_dump($this->data); exit;
 			} catch (\PDOException $e) {
 				if ($this->db->inTransaction()) {
 					$this->db->rollBack();
-				}
-
-				if ($e->getCode() === '23000') {
-					// http://stackoverflow.com/questions/20077309/in-case-of-integrity-constraint-violation-how-to-tell-the-columns-that-are-caus
-					
-					// Get name of the key that failed.
-					preg_match('/(?<=\')[^\']*(?=\'[^\']*$)/', $e->getMessage(), $match);
-
-					$sth = $this->db->prepare("SHOW INDEXES FROM `" . static::TABLE_NAME . "` WHERE `Key_name` = :key_name;");
-					$sth->execute(['key_name' => $match[0]]);
-					$indexes = $sth->fetchAll(\PDO::FETCH_ASSOC);
-					
-					$columns = array_map(function ($e) { return $e['Column_name']; }, $indexes);
-					
-					if (count($columns) > 1) {
-						throw new \Gajus\MOA\Exception\LogicException('"' . implode(', ', $columns) . '" column combination must have a unique value.', 0, $e);
-					} else {
-						throw new \Gajus\MOA\Exception\LogicException('"' . $columns[0] . '" column must have a unique value.', 0, $e);
-					}
-				} else {
-					#var_dump($placeholders, $this->data, $e->getMessage()); exit;
 				}
 				
 				throw $e;
