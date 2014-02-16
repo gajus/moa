@@ -40,34 +40,4 @@ class InsertTest extends PHPUnit_Framework_TestCase {
         $greedy = new \Sandbox\Model\Greedy($this->db);
         $greedy->save();
     }
-
-    /**
-     * @expectedException Gajus\MOA\Exception\LogicException
-     * @expectedExceptionMessage "name" column must have a unique value.
-     */
-    public function testInsertDuplicateValue () {
-        $string = new \Sandbox\Model\Duplicate($this->db);
-        $string['name'] = 'Foo';
-        $string->save();
-
-        $string = new \Sandbox\Model\Duplicate($this->db);
-        $string['name'] = 'Foo';
-        $string->save();
-    }
-
-    /**
-     * @expectedException Gajus\MOA\Exception\LogicException
-     * @expectedExceptionMessage "foo, bar" column combination must have a unique value.
-     */
-    public function testInsertDuplicateValueCombination () {
-        $string = new \Sandbox\Model\Duplicate($this->db);
-        $string['foo'] = 'foo';
-        $string['bar'] = 'bar';
-        $string->save();
-
-        $string = new \Sandbox\Model\Duplicate($this->db);
-        $string['foo'] = 'foo';
-        $string['bar'] = 'bar';
-        $string->save();
-    }
 }

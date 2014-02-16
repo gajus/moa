@@ -46,39 +46,4 @@ class UpdateTest extends PHPUnit_Framework_TestCase {
 
         $this->assertSame($synchronisation_count, $string->getSynchronisationCount());
     }
-
-    /**
-     * @expectedException Gajus\MOA\Exception\LogicException
-     * @expectedExceptionMessage "name" column must have a unique value.
-     */
-    public function testUpdateUsingDuplicateValue () {
-        $string = new \Sandbox\Model\Duplicate($this->db);
-        $string['name'] = 'Foo';
-        $string->save();
-
-        $string = new \Sandbox\Model\Duplicate($this->db);
-        $string['name'] = 'bar';
-        $string->save();
-        $string['name'] = 'Foo';
-        $string->save();
-    }
-
-    /**
-     * @expectedException Gajus\MOA\Exception\LogicException
-     * @expectedExceptionMessage "foo, bar" column combination must have a unique value.
-     */
-    public function testUpdateDuplicateValueCombination () {
-        $string = new \Sandbox\Model\Duplicate($this->db);
-        $string['foo'] = 'foo';
-        $string['bar'] = 'bar';
-        $string->save();
-
-        $string = new \Sandbox\Model\Duplicate($this->db);
-        $string['foo'] = 'x';
-        $string['bar'] = 'x';
-        $string->save();
-        $string['foo'] = 'foo';
-        $string['bar'] = 'bar';
-        $string->save();
-    }
 }
