@@ -28,7 +28,12 @@ abstract class Mother implements \ArrayAccess {
 		 *
 		 * @var array
 		 */
-		$last_synchronisation_data = null;
+		$last_synchronisation_data = null,
+		/**
+		 * Which columns were updated?
+		 * For tracking changes, instead of current diff method.
+		 */
+		$set_columns = [];
 
 	static private
 		$parameter_type_map = [
@@ -63,6 +68,8 @@ abstract class Mother implements \ArrayAccess {
 			}
 
 			$this->populate($data);
+
+			$this->set_columns = [];
 		} else if (is_null($data)) {
 			$this->data = [];
 		} else {
@@ -111,6 +118,7 @@ abstract class Mother implements \ArrayAccess {
 		}
 
 		$this->last_synchronisation_data = $this->data;
+		$this->set_columns = [];
 	}
 	
 	/**
@@ -151,7 +159,6 @@ abstract class Mother implements \ArrayAccess {
 		if (is_null($value) && !in_array($name, array_keys($this->getRequiredProperties()))) {
 
 
-
 		} else {
 			switch (static::$columns[$name]['data_type']) {
 				case 'datetime':
@@ -189,11 +196,13 @@ abstract class Mother implements \ArrayAccess {
 					}
 					break;
 			}
-		}		
-		
+		}
+
 		if (array_key_exists($name, $this->data) && $this->data[$name] === $value) {
 			return false;
 		}
+
+		$this->set_columns[$name] = $value;
 
 		// $this->validateInput($data, $value);
 
@@ -263,9 +272,18 @@ abstract class Mother implements \ArrayAccess {
 
 		if ($is_insert) {
 			$data[static::PRIMARY_KEY_NAME] = null;
-		} else {
-			// Update only data that has changed.
+
+		// If we have previously synced
+		} else if ($this->last_synchronisation_data) {
+			// Then update only data that has changed.
 			$data = array_diff($data, $this->last_synchronisation_data);
+		
+		// Update only columns that were changed.
+		} else if ($this->set_columns) {
+			$data = $this->set_columns;
+		// Nothing to do.
+		} else {
+			$data = [];
 		}
 
 		$placeholders = [];
@@ -278,13 +296,15 @@ abstract class Mother implements \ArrayAccess {
 			}
 		}
 
+		#bump($placeholders, $data, $this->last_synchronisation_data, $this);
+
 		// If update would not affect database.
 		if ($placeholders) {
 			$placeholders = implode(', ', $placeholders);
 
-			$this->db->beginTransaction();
-
 			try {
+				$this->db->beginTransaction();
+
 				if ($is_insert) {
 					$sth = $this->db
 						->prepare("INSERT INTO `" . static::TABLE_NAME . "` SET {$placeholders}");
@@ -308,10 +328,10 @@ abstract class Mother implements \ArrayAccess {
 				if ($this->db->inTransaction()) {
 					$this->db->rollBack();
 				}
-				
+
 				throw $e;
 			}
-		
+
 			$this->synchronise();
 		}
 		
@@ -334,11 +354,15 @@ abstract class Mother implements \ArrayAccess {
 
 			throw $e;
 		}
+
+		#bump( $placeholders, $this );
 		
 
 		if ($placeholders) {
 			$this->db->commit();
 		}
+
+		
 		
 		return $this;
 	}
