@@ -150,7 +150,9 @@ abstract class Mother implements \ArrayAccess {
 	 * @return boolean True if setter affected the result set.
 	 */
 	public function set ($name, $value = null) {
-		if ($name === static::PRIMARY_KEY_NAME) {
+		if (!is_string($name)) {
+			throw new \Gajus\MOA\Exception\InvalidArgumentException('Property name is not a string.');
+		} else if ($name === static::PRIMARY_KEY_NAME) {
 			throw new \Gajus\MOA\Exception\LogicException('Primary key value cannot be changed.');
 		} else if (!isset(static::$columns[$name])) {
 			throw new \Gajus\MOA\Exception\UndefinedPropertyException('Trying to set non-object property "' . $name . '".');
