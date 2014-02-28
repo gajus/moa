@@ -103,6 +103,8 @@ abstract class Mother implements \ArrayAccess {
 		$sth->execute([$this->data[static::PRIMARY_KEY_NAME]]);
 		$this->data = $sth->fetch(\PDO::FETCH_ASSOC);
 
+		#if (isset($GLOBALS['test'])) bump("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?", $this->data);
+
 		if (!$this->data) {
 			throw new \Gajus\MOA\Exception\RecordNotFoundException('Primary key value does not refer to an existing record.');
 		}
@@ -112,10 +114,13 @@ abstract class Mother implements \ArrayAccess {
 				throw new \Gajus\MOA\Exception\LogicException('Model does not reflect table.');
 			}
 
-			if (in_array($column['data_type'], ['datetime', 'timestamp'])) {
+			// @todo Add as a test condition.
+			if (in_array($column['data_type'], ['datetime', 'timestamp']) && !is_null($this->data[$name])) {
 				$this->data[$name] = strtotime($this->data[$name]);
 			}
 		}
+
+		#if (isset($GLOBALS['test'])) bump("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?", $this->data);
 
 		$this->last_synchronisation_data = $this->data;
 		$this->set_columns = [];
@@ -445,6 +450,8 @@ abstract class Mother implements \ArrayAccess {
 	 * @return boolean
 	 */
 	public function offsetExists ($offset) {
+		bump($this->data, $offset, isset($this->data[$offset]));
+
 		return isset($this->data[$offset]);
 	}
 	
