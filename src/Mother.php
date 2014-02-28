@@ -450,7 +450,7 @@ abstract class Mother implements \ArrayAccess {
 	 * @return boolean
 	 */
 	public function offsetExists ($offset) {
-		bump($this->data, $offset, isset($this->data[$offset]));
+		#bump($this->data, $offset, isset($this->data[$offset]));
 
 		return isset($this->data[$offset]);
 	}
