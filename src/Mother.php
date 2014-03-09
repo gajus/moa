@@ -309,6 +309,11 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 
 		// If update would not affect database.
 		// @todo Why is phpunit failing when !$is_insert condition is added?
+
+		if ($is_insert && !$placeholders) {
+			throw new \Gajus\MOA\Exception\LogicException('Cannot insert object without any values.');
+		}
+
 		if ($placeholders) {
 			$placeholders = implode(', ', $placeholders);
 
