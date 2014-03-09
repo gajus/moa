@@ -22,18 +22,10 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	private
 		$synchronisation_count = 0,
 		/**
-		 * Holds a copy of the data since the last sychronisation.
-		 * Difference between the current and last sychronisation data
-		 * is used to update only the changed properties.
-		 *
+		 * Used to update only the changed properties.
 		 * @var array
 		 */
-		$last_synchronisation_data = null,
-		/**
-		 * Which columns were updated?
-		 * For tracking changes, instead of current diff method.
-		 */
-		$set_columns = [];
+		$updated_columns = [];
 
 	protected
 		/**
@@ -74,7 +66,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 
 			$this->populate($data);
 
-			$this->set_columns = [];
+			$this->updated_columns = [];
 		} else if (is_null($data)) {
 			$this->data = [];
 		} else {
@@ -97,7 +89,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	 * @return void
 	 */
 	final private function synchronise () {
-		$this->logger->debug('Synchronising object.', ['object' => static::TABLE_NAME]);
+		$this->logger->debug('Synchronising object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME]);
 
 		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
 			throw new \Gajus\MOA\Exception\Logic_Exception('Primary key is not set.');
@@ -129,8 +121,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 
 		#if (isset($GLOBALS['test'])) bump("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?", $this->data);
 
-		$this->last_synchronisation_data = $this->data;
-		$this->set_columns = [];
+		$this->updated_columns = [];
 	}
 	
 	/**
@@ -164,6 +155,8 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	 * @return boolean True if setter affected the result set.
 	 */
 	public function set ($name, $value = null) {
+		$this->logger->debug('Setting property value.', ['method' => __METHOD__, 'object' => static::TABLE_NAME, 'property' => ['name' => $name, 'value' => $value]]);
+
 		if (!is_string($name)) {
 			throw new \Gajus\MOA\Exception\InvalidArgumentException('Property name is not a string.');
 		} else if ($name === static::PRIMARY_KEY_NAME) {
@@ -173,8 +166,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		}
 
 		if (is_null($value) && !in_array($name, array_keys($this->getRequiredProperties()))) {
-
-
+			// @todo Document the purpose of the inverse condition.
 		} else {
 			switch (static::$columns[$name]['data_type']) {
 				case 'datetime':
@@ -215,12 +207,15 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		}
 
 		if (array_key_exists($name, $this->data) && $this->data[$name] === $value) {
+			$this->logger->debug('Property value has not changed.', ['method' => __METHOD__, 'object' => static::TABLE_NAME, 'property' => ['name' => $name, 'value' => $value]]);
+
 			return false;
 		}
 
-		$this->set_columns[$name] = $value;
+		$this->updated_columns[$name] = $value;
 
-		// $this->validateInput($data, $value);
+		// @todo Support for extended input validation.
+		# $this->validateInput($data, $value);
 
 		$this->data[$name] = $value;
 		
@@ -264,7 +259,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	 * @return gajus\MOA\Mother
 	 */
 	public function save () {
-		$this->logger->debug('Saving object.', ['object' => static::TABLE_NAME]);
+		$this->logger->debug('Saving object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME]);
 
 		$required_properties = array_keys($this->getRequiredProperties());
 
@@ -283,21 +278,18 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		}
 
 		$before_data = $this->data; // Used to recover in case of Exception in "after" event.
-		$before_last_synchronisation_data = $this->last_synchronisation_data;
-
+		
 		$is_insert = !isset($this->data[static::PRIMARY_KEY_NAME]);
 		$data = $this->data;
 
 		if ($is_insert) {
+			$this->logger->debug('Preparing to insert new object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME]);
+
 			$data[static::PRIMARY_KEY_NAME] = null;
 
-		// If we have previously synced then update only data that has changed.
-		} else if ($this->last_synchronisation_data) {
-			$data = array_diff($data, $this->last_synchronisation_data);
-		
 		// Update only columns that were changed.
-		} else if ($this->set_columns) {
-			$data = $this->set_columns;
+		} else if ($this->updated_columns) {
+			$data = $this->updated_columns;
 		// Nothing to do.
 		} else {
 			$data = [];
@@ -313,7 +305,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			}
 		}
 
-		$this->logger->debug('Preparing to ' . ($is_insert ? 'insert' : 'update') . ' object.', ['object' => static::TABLE_NAME, 'placeholders' => $placeholders]);
+		#$this->logger->debug('Preparing to ' . ($is_insert ? 'insert' : 'update') . ' object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME, 'placeholders' => $placeholders]);
 
 		// If update would not affect database.
 		// @todo Why is phpunit failing when !$is_insert condition is added?
@@ -370,7 +362,6 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 				}
 
 				$this->data = $before_data;
-				$this->last_synchronisation_data = $before_last_synchronisation_data;
 				$this->synchronisation_count--;
 			}
 

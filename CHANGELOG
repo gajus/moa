@@ -8,6 +8,7 @@ Changelog:
 0.0.4 / 2014-03-09
 
 * Integrated Psr\Log\LoggerAwareInterface interface.
+* Tracking changes using "last_synchronisation_data" has been removed. Instead using "updated_columns". This property is updated with column name every time setter is used.
 
 0.0.3 / 2014-02-09
 
