@@ -5,7 +5,7 @@ namespace Gajus\MOA;
  * @link https://github.com/gajus/moa for the canonical source repository
  * @license https://github.com/gajus/moa/blob/master/LICENSE BSD 3-Clause
  */
-abstract class Mother implements \ArrayAccess {
+abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	protected
 		/**
 		 * @var PDO
@@ -35,6 +35,12 @@ abstract class Mother implements \ArrayAccess {
 		 */
 		$set_columns = [];
 
+	protected
+		/**
+		 * var Psr\Log\LoggerInterface
+		 */
+		$logger;
+
 	static private
 		$parameter_type_map = [
 			'int' => \PDO::PARAM_INT,
@@ -50,10 +56,9 @@ abstract class Mother implements \ArrayAccess {
 	 */
 	public function __construct (\PDO $db, $data = null) {
 		$this->db = $db;
+		$this->logger = new \Psr\Log\NullLogger();
 
 		if (is_int($data) || ctype_digit($data)) {
-			$id = (int) $data;
-
 			$this->data[static::PRIMARY_KEY_NAME] = $data;
 			$this->synchronise();
 		} else if (is_array($data)) {
@@ -92,6 +97,8 @@ abstract class Mother implements \ArrayAccess {
 	 * @return void
 	 */
 	final private function synchronise () {
+		$this->logger->debug('Synchronising object.', ['object' => static::TABLE_NAME]);
+
 		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
 			throw new \Gajus\MOA\Exception\Logic_Exception('Primary key is not set.');
 		}
@@ -257,6 +264,8 @@ abstract class Mother implements \ArrayAccess {
 	 * @return gajus\MOA\Mother
 	 */
 	public function save () {
+		$this->logger->debug('Saving object.', ['object' => static::TABLE_NAME]);
+
 		$required_properties = array_keys($this->getRequiredProperties());
 
 		foreach (static::$columns as $name => $column) {
@@ -282,9 +291,8 @@ abstract class Mother implements \ArrayAccess {
 		if ($is_insert) {
 			$data[static::PRIMARY_KEY_NAME] = null;
 
-		// If we have previously synced
+		// If we have previously synced then update only data that has changed.
 		} else if ($this->last_synchronisation_data) {
-			// Then update only data that has changed.
 			$data = array_diff($data, $this->last_synchronisation_data);
 		
 		// Update only columns that were changed.
@@ -305,9 +313,10 @@ abstract class Mother implements \ArrayAccess {
 			}
 		}
 
-		#bump($placeholders, $data, $this->last_synchronisation_data, $this);
+		$this->logger->debug('Preparing to ' . ($is_insert ? 'insert' : 'update') . ' object.', ['object' => static::TABLE_NAME, 'placeholders' => $placeholders]);
 
 		// If update would not affect database.
+		// @todo Why is phpunit failing when !$is_insert condition is added?
 		if ($placeholders) {
 			$placeholders = implode(', ', $placeholders);
 
@@ -368,15 +377,10 @@ abstract class Mother implements \ArrayAccess {
 			throw $e;
 		}
 
-		#bump( $placeholders, $this );
-		
-
 		if ($placeholders) {
 			$this->db->commit();
 		}
 
-		
-		
 		return $this;
 	}
 	
@@ -484,4 +488,14 @@ abstract class Mother implements \ArrayAccess {
 	public function offsetUnset ($offset) {
 		unset($this->data[$offset]);
 	}
+
+	/**
+     * Sets a logger instance on the object
+     *
+     * @param LoggerInterface $logger
+     * @return null
+     */
+    public function setLogger (\Psr\Log\LoggerInterface $logger) {
+        $this->logger = $logger;
+    }
 }

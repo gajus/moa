@@ -2,10 +2,12 @@ Todo:
 
 * Added integer input range comliance check.
 * Check if database representation is the same as model.
-* Add safety check for --clean.
-* Leave it up to the 
 
 Changelog:
+
+0.0.4 / 2014-03-09
+
+* Integrated Psr\Log\LoggerAwareInterface interface.
 
 0.0.3 / 2014-02-09
 
