@@ -308,8 +308,8 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		#$this->logger->debug('Preparing to ' . ($is_insert ? 'insert' : 'update') . ' object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME, 'placeholders' => $placeholders]);
 
 		// If update would not affect database.
-		// @todo Why is phpunit failing when !$is_insert condition is added?
-
+		
+		// @todo What about object an object with all properties having a default value?
 		if ($is_insert && !$placeholders) {
 			throw new \Gajus\MOA\Exception\LogicException('Cannot insert object without any values.');
 		}
