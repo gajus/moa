@@ -127,11 +127,13 @@ abstract class Mother implements \ArrayAccess {
 	}
 	
 	/**
+	 * Get database handler used to instantiate the object.
+	 * 
 	 * @return PDO
 	 */
-	#public function getDatabaseHandle () {
-	#	return $this->db;
-	#}
+	public function getDatabaseHandle () {
+		return $this->db;
+	}
 	
 	//protected function validateInput ($name, $value) {}
 	
@@ -334,6 +336,10 @@ abstract class Mother implements \ArrayAccess {
 			} catch (\PDOException $e) {
 				if ($this->db->inTransaction()) {
 					$this->db->rollBack();
+				}
+
+				if ($e->getCode() === '23000') {
+					throw new Exception\ConstraintViolationException($e->getMessage(), 0, $e);
 				}
 
 				throw $e;
