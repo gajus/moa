@@ -133,8 +133,6 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		return $this->db;
 	}
 	
-	//protected function validateInput ($name, $value) {}
-	
 	/**
 	 * Shorthand method to pass each array key, value pair to the setter.
 	 *
@@ -185,7 +183,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 					
 					break;
 
-				case 'tinyint':
+				/*case 'tinyint':
 				case 'smallint':
 				case 'mediumint':
 				case 'int':
@@ -196,7 +194,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 
 					// @todo check range
 
-					break;
+					break;*/
 
 				default:
 					if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {

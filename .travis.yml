@@ -1,21 +1,25 @@
 language: php
 
 php:
-  - "5.5"
-
-env:
-  - DB=mysql
+    - 5.4
+    - 5.5
+    - 5.6
 
 before_script:
-  - wget http://getcomposer.org/composer.phar
-  - php composer.phar install --dev --no-interaction
-  - sh -c "if [ '$DB' = 'mysql' ]; then mysql -e 'drop database if exists moa; create database moa;'; fi"
-  - sh -c "if [ '$DB' = 'mysql' ]; then mysql moa < tests/data/moa.sql; fi"
-  - sh -c "php ./bin/build.php --namespace \"Sandbox\Model\MOA\" --database \"moa\" --user \"travis\" --path \"./tests/Sandbox/Model/MOA\" --clean"
+    - travis_retry composer self-update
+    - travis_retry composer install --no-interaction --prefer-source --dev
+    - mkdir -p build/logs
+
+env:
+    - DB=mysql
+
+before_script:
+    - sh -c "if [ '$DB' = 'mysql' ]; then mysql -e 'drop database if exists moa; create database moa;'; fi"
+    - sh -c "if [ '$DB' = 'mysql' ]; then mysql moa < tests/data/moa.sql; fi"
+    - sh -c "php ./bin/build.php --namespace \"Sandbox\Model\MOA\" --database \"moa\" --user \"travis\" --path \"./tests/Sandbox/Model/MOA\" --clean"
 
 script:
-  - mkdir -p build/logs
-  - phpunit --coverage-clover build/logs/clover.xml
+    - phpunit --verbose --coverage-clover build/logs/clover.xml
 
 after_script:
-  - php vendor/bin/coveralls -v
+    - php vendor/bin/coveralls -v
