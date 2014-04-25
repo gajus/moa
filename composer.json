@@ -1,5 +1,6 @@
 {
 	"name": "gajus/moa",
+	"version": "0.1.0",
 	"description": "MOA implements dynamically generated Active Record database abstraction.",
 	"keywords": ["model", "active record"],
 	"homepage": "https://github.com/gajus/moa",
@@ -12,7 +13,7 @@
 		}
 	],
 	"require": {
-		"php": ">=5.5",
+		"php": ">=5.4",
 		"psr/log": "1.0.0",
 		"ext-pdo": "*"
 	},

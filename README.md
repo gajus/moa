@@ -1,7 +1,9 @@
 # MOA
 
 [![Build Status](https://travis-ci.org/gajus/moa.png?branch=master)](https://travis-ci.org/gajus/moa)
-[![Coverage Status](https://coveralls.io/repos/gajus/moa/badge.png)](https://coveralls.io/r/gajus/moa)
+[![Coverage Status](https://coveralls.io/repos/gajus/moa/badge.png?branch=master)](https://coveralls.io/r/gajus/moa?branch=master)
+[![Latest Stable Version](https://poser.pugx.org/gajus/moa/version.png)](https://packagist.org/packages/gajus/moa)
+[![License](https://poser.pugx.org/gajus/moa/license.png)](https://packagist.org/packages/gajus/moa)
 
 MOA (mother of all) is a database abstraction using [Active Record](http://en.wikipedia.org/wiki/Active_record_pattern) pattern:
 
