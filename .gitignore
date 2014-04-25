@@ -2,3 +2,4 @@ vendor/
 composer.lock
 tests/Sandbox/Model/MOA/*
 report/
+phpunit.xml
