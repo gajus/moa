@@ -83,17 +83,19 @@ Delete operation will remove the object reference from the database and unset th
 
 ### Hierarchy
 
-When using MOA, you can choose your own namespace and have your own [base class](https://github.com/gajus/moa#mother-1). This is an example of application hierarchy incorporating all of the MOA components:
+Using MOA you can [choose your own namespace](#builder-script)) and have your own [base class](#mother-1).
+
+This is an example of an application hierarchy incorporating all of the MOA components:
 
 ```
 Gajus\MOA\Mother
-    Your\Base [optional]
+    you base model [optional]
         MOA generated models
             your hand-typed models [optional]
-                your hand-typed domains [optional, for dealing with ORM]
+                your hand-typed domain logic [optional]
 ```
 
-## Naming convention
+## Naming Convention
 
 MOA assumes that your models are writen using CamelCase convention (e.g. `MyTableName`). Table names must be singular (e.g. `Car` not `Cars`). MOA generated models will use CamelCase convention.
 
@@ -112,10 +114,10 @@ echo $car['id']; // Newly entered record ID.
 
 ### Mother
 
-To inject logic between Mother and the generated models, you need to:
+To inject logic between Mother and the generated models:
 
 1. Extend `Gajus\MOA\Mother` class.
-2. Build models using `--extends` property with the name of that class.
+2. Build models using `--extends` property.
 
 ### Individual models
 
@@ -141,9 +143,7 @@ class Car extends \Dynamically\Generated\Car {
 }
 ```
 
-> MOA convention is to prefix method names "getMany[Where]" for methods that return array and "get[Where]" that return instance of Mother.
-
-You don't need to set anything else since all of the properties are already populated in the generated model. To view what properties are available for each table, refer to the generated models.
+> MOA convention is to prefix method names "getMany[Where]" for methods that return array and "get[Where]" that return an instance of `Mother`.
 
 ## Builder Script
 
