@@ -69,95 +69,15 @@ With other Active Record implementations you do not need a generator because the
 
 ### Mother
 
-All models extend `Gajus\MOA\Mother`.
+All models extend `Gajus\MOA\Mother`. Mother attempts to reduce number of scenarios that would otherwise cause an error only at the time of interacting with the database. This is achived by using the prefetched table attributes to work out when:
 
-```php
-/**
- * @param PDO $db
- * @param mixed $data
- */
-public function __construct (\PDO $db, $data = null);
-```
+* Accessing a non-existing property.
+* Setting proprety that does not pass in-built and custom validation logic.
+* Saving object without all the required properties.
 
-#### Instantiating an Object
+In addition to the above, Mother is tracking object state for changes and does not synchronise with the database unless object state has changed.
 
-##### To create a new object:
-
-```php
-<?php
-$person = new \My\App\Model\Person($db);
-$person['name'] = 'Tom';
-$person->save();
-```
-
-This example will store data to the database.
-
-The above
-
-##### To create an instance of an existing entity using data:
-
-```php
-<?php
-$person = new \My\App\Model\Person($db, ['id' => 1, 'name' => 'Tom']);
-```
-
-This example will not sychronise data with the database.
-
-##### To create an instance of an existing entity using primary key value:
-
-```php
-<?php
-$person = new \My\App\Model\Person($db, 1);
-```
-
-This example will retrieve the data from the database.
-
-#### Getters and Setters
-
-Getters and setters use the prefetched table attributes to work out when you are trying to assign a non-existing property or invalid value and catch other cases that would otherwise cause an error only at the time of interacting with the database.
-
-```php
-/**
- * Set object property.
- * 
- * @param string $name Property name.
- * @param mixed $value
- * @return boolean Returns true if object state has been affected.
- */
-public function set ($name, $value = null);
-
-/**
- * Get object property.
- *
- * @param string $name Property name.
- * @return mixed
- */
-public function get ($name);
-```
-
-MOA implements `ArrayAccess` interface. You can manipulate object properties using the array syntax, e.g.
-
-```php
-<?php
-$car = new \My\App\Model\Car($db);
-$car['colour'] = 'red';
-$car->save();
-```
-
-In addition to the getters and setters, MOA provides the following methods:
-
-|Name|Description|
-|`save`|To insert/update entry in the database.|
-|`delete`|To remove the entry from the database.|
-
-Models inherit the following triggers:
-
-|Name|Description|
-|`afterInsert`|Triggered after `INSERT` but before the transaction is commited.|
-|`afterUpdate`|Triggered after `UPDATE` but before the transaction is commited.|
-|`afterDelete`|Triggered after `DELETE` but before the transaction is commited.|
-
-Each of the above methods can interrupt the respective transaction.
+### Hierarchy
 
 As a result, project hierarchy is:
 
