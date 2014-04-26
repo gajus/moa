@@ -5,21 +5,24 @@
 [![Latest Stable Version](https://poser.pugx.org/gajus/moa/version.png)](https://packagist.org/packages/gajus/moa)
 [![License](https://poser.pugx.org/gajus/moa/license.png)](https://packagist.org/packages/gajus/moa)
 
-MOA (mother of all) is a database abstraction using [Active Record](http://en.wikipedia.org/wiki/Active_record_pattern) pattern:
+MOA (Mother of All) is a database abstraction using [Active Record](http://en.wikipedia.org/wiki/Active_record_pattern) pattern:
 
 > Active record is an approach to accessing data in a database. A database table or view is wrapped into a class. Thus, an object instance is tied to a single row in the table. After creation of an object, a new row is added to the table upon save. Any object loaded gets its information from the database. When an object is updated the corresponding row in the table is also updated. The wrapper class implements accessor methods or properties for each column in the table or view.
 
 – http://en.wikipedia.org/wiki/Active_record_pattern
 
-MOA is not [ORM](http://en.wikipedia.org/wiki/Object-relational_mapping), because it does not work with collections.
+MOA is designed to handle [CRUD](http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations.
 
-MOA is designed to handle [CRUD](http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations. MOA does not implement elaborate finders, filters or methods for querying data. However, these libraries do:
+MOA is not [ORM](http://en.wikipedia.org/wiki/Object-relational_mapping). MOA does not work with object relations and dependencies. However, these libraries do:
+
+* [Doctrine](http://www.doctrine-project.org/)
+* [Propel](https://github.com/propelorm/Propel2)
+
+MOA does not implement elaborate finders, filters or methods for querying data. However, these libraries do:
 
 * [PHP ActiveRecord](https://github.com/jpfuentes2/php-activerecord)
 * [Paris](https://github.com/j4mie/paris)
 * [Parm](https://github.com/cassell/Parm)
-
-Instead, when using MOA you are supposed to write [custom methods with custom SQL queries](https://github.com/gajus/moa#individual-models) to retrieve data. You need to create instance of MOA only when you plan to update/insert data.
 
 ## Hierarchy & Responsibilities
 
