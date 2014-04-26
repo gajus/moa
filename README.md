@@ -133,9 +133,10 @@ $person->delete();
 # $person['id'] null
 ```
 
-However, it does not discard the object property values. If you were to save the same object again, it would be inserted to the database:
+However, other property values are not discarded. If you were to save the same object again, it will be inserted to the database:
 
 ```php
+# $person['name'] Bar
 $person->save();
 # $person['id'] 2
 ```
