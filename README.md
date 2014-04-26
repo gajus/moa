@@ -99,9 +99,9 @@ Gajus\MOA\Mother
 
 This section of the documentation is using code examples to introduce you to the API.
 
-### Create and Update Object
+### Create and Update
 
-#### To Create a New Object
+Object is inserted and updated with `save` method. Object is inserted to the database if instancy primary key property has no value. Otherwise, object is updated using the primary key property value.
 
 ```php
 /**
