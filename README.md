@@ -28,7 +28,7 @@ MOA does not implement elaborate finders, filters or methods for querying data. 
 
 ### Model Builder
 
-MOA is using dynamic code generation to represent your database. [builder script](#building-models) generates a file for each table using attributes fetched from the database. These attributes define each column name, type, constraints, etc. These classes are generated dynamically to reduce the amount of hand-coded duplication of the data representation.
+MOA is using dynamic code generation to represent your database. [builder script](#building-models) generates a file for each table using attributes fetched from the database (e.g. column name, type, default value, etc.). These classes are generated dynamically to reduce the amount of hand-coded duplication of the data representation.
 
 This is an example of generated class:
 
