@@ -126,7 +126,7 @@ Models are built using `./bin/build.php` CLI script. The following parameters ar
 
 e.g., the examples used for unit testing are built using:
 
-```
+```bash
 php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --path "./tests/Sandbox/Model/MOA"
 ```
 
