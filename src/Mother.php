@@ -50,32 +50,18 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	
 	/**
 	 * @param PDO $db
-	 * @param mixed $data
+	 * @param integer $id
 	 */
-	public function __construct (\PDO $db, $data = null) {
+	public function __construct (\PDO $db, $id = null) {
 		$this->db = $db;
 		$this->logger = new \Psr\Log\NullLogger();
 
 		// If $data is an integer, then it is assumed by the primary key
 		// of an existing record in the database.
-		if (is_int($data) || ctype_digit($data)) {
-			$this->data[static::PRIMARY_KEY_NAME] = $data;
+		if (is_int($id) || ctype_digit($id)) {
+			$this->data[static::PRIMARY_KEY_NAME] = $id;
 			$this->synchronise();
-		} else if (is_array($data)) {
-			if (isset($data[static::PRIMARY_KEY_NAME])) {
-				if ($diff = array_keys(array_diff_key(static::$columns, $data))) {
-					throw new Exception\UndefinedPropertyException('Cannot inflate existing object without all properties. Missing "' . implode(', ', $diff) . '".');
-				}
-
-				$this->data[static::PRIMARY_KEY_NAME] = $data[static::PRIMARY_KEY_NAME];
-
-				unset($data[static::PRIMARY_KEY_NAME]);
-			}
-
-			$this->populate($data);
-
-			$this->updated_properties = [];
-		} else if (is_null($data)) {
+		} else if (is_null($id)) {
 			$this->data = [];
 		} else {
 			throw new Exception\InvalidArgumentException('Invalid argument type.');

@@ -142,22 +142,13 @@ $person->save();
 
 ### Inflate Object
 
-You can inflate object using either the primary key or if you have all of the object data.
+Object is inflated using the primary key:
 
 ```php
-// Inflate object using the primary key value
 $person = new \My\App\Model\Person($db, 2);
 ```
 
-Object data is retrieved from the database where primary key value is "2".
-
-#### Inflate Object From Data
-
-```php
-$person = new \My\App\Model\Person($db, ['id' => 1, 'name' => 'Foo']);
-```
-
-This code assumes that you already have a record in the database with this primary key.
+In the above example, object data is retrieved from the database where primary key value is "2".
 
 ### Getters and Setters
 

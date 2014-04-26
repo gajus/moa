@@ -42,7 +42,7 @@ class InflateTest extends PHPUnit_Framework_TestCase {
         new \Sandbox\Model\String($this->db, 'foobar');
     }
 
-    public function testInflateUsingAllProperties () {
+    /*public function testInflateUsingAllProperties () {
         $foo = new \Sandbox\Model\String($this->db);
         $foo['name'] = 'test';
         $foo->save();
@@ -52,13 +52,13 @@ class InflateTest extends PHPUnit_Framework_TestCase {
         $foo = new \Sandbox\Model\String($this->db, $properties);
 
         $this->assertSame($properties, $foo->getData());
-    }
+    }*/
 
     /**
      * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
      * @expectedExceptionMessage Cannot inflate existing object without all properties. Missing "name".
      */
-    public function testInflateUsingSomeProperties () {
+    /*public function testInflateUsingSomeProperties () {
         $foo = new \Sandbox\Model\String($this->db);
         $foo->save();
 
@@ -67,5 +67,5 @@ class InflateTest extends PHPUnit_Framework_TestCase {
         unset($properties['name']);
 
         $foo = new \Sandbox\Model\String($this->db, $properties);
-    }
+    }*/
 }
