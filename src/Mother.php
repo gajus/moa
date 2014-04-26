@@ -83,7 +83,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	}
 
 	/**
-	 * Get object data as associative array.
+	 * Get object data in an associative array.
 	 *
 	 * @return array
 	 */
@@ -473,15 +473,6 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	 * @return void
 	 */
 	protected function afterDelete () {}
-
-	/**
-	 * Return raw object data as associative array.
-	 *
-	 * @return array
-	 */
-	public function getProperties () {
-		return $this->data;
-	}
 
 	/**
 	 * Synchronisation count is used for unit testing only.

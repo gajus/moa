@@ -25,7 +25,7 @@ class GetTest extends PHPUnit_Framework_TestCase {
 
         $data['id'] = $foo['id'];
 
-        $properties = $foo->getProperties();
+        $properties = $foo->getData();
 
         $this->assertSame($data, $properties);
     }

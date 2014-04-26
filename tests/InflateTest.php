@@ -19,11 +19,11 @@ class InflateTest extends PHPUnit_Framework_TestCase {
 
         $foo->save();
 
-        $properties = $foo->getProperties();
+        $properties = $foo->getData();
 
         $foo = new \Sandbox\Model\String($this->db, $foo['id']);
 
-        $this->assertSame($properties, $foo->getProperties());
+        $this->assertSame($properties, $foo->getData());
     }
 
     /**
@@ -47,11 +47,11 @@ class InflateTest extends PHPUnit_Framework_TestCase {
         $foo['name'] = 'test';
         $foo->save();
 
-        $properties = $foo->getProperties();
+        $properties = $foo->getData();
 
         $foo = new \Sandbox\Model\String($this->db, $properties);
 
-        $this->assertSame($properties, $foo->getProperties());
+        $this->assertSame($properties, $foo->getData());
     }
 
     /**
@@ -62,7 +62,7 @@ class InflateTest extends PHPUnit_Framework_TestCase {
         $foo = new \Sandbox\Model\String($this->db);
         $foo->save();
 
-        $properties = $foo->getProperties();
+        $properties = $foo->getData();
 
         unset($properties['name']);
 

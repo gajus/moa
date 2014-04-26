@@ -33,7 +33,7 @@ class EventTest extends PHPUnit_Framework_TestCase {
         try {
             $foo->save();
         } catch (\RuntimeException $e) {
-            $this->assertSame($properties, $foo->getProperties());
+            $this->assertSame($properties, $foo->getData());
         }
     }
 
@@ -53,12 +53,12 @@ class EventTest extends PHPUnit_Framework_TestCase {
         $foo['name'] = 'throw_after_update';
         $foo->save();
 
-        $properties = $foo->getProperties();
+        $properties = $foo->getData();
         
         try {
             $foo->save();
         } catch (\RuntimeException $e) {
-            $this->assertSame($properties, $foo->getProperties());
+            $this->assertSame($properties, $foo->getData());
         }
     }
 
@@ -78,12 +78,12 @@ class EventTest extends PHPUnit_Framework_TestCase {
         $foo['name'] = 'throw_after_delete';
         $foo->save();
 
-        $properties = $foo->getProperties();
+        $properties = $foo->getData();
         
         try {
             $foo->delete();
         } catch (\RuntimeException $e) {
-            $this->assertSame($properties, $foo->getProperties());
+            $this->assertSame($properties, $foo->getData());
         }
     }
 }
