@@ -9,40 +9,41 @@ class GetTest extends PHPUnit_Framework_TestCase {
         $this->db->exec("TRUNCATE TABLE `datetime`");
         $this->db->exec("TRUNCATE TABLE `duplicate`");
         $this->db->exec("TRUNCATE TABLE `greedy`");
+        $this->db->exec("TRUNCATE TABLE `greedy_timestamp`");
         $this->db->exec("TRUNCATE TABLE `number`");
         $this->db->exec("TRUNCATE TABLE `string`");
     }
 
     public function testGetAllPropertiesOfExistingObject () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo->save();
 
         $data = [
             'id' => null,
             'name' => ''
         ];
 
-        $data['id'] = $string['id'];
+        $data['id'] = $foo['id'];
 
-        $properties = $string->getProperties();
+        $properties = $foo->getProperties();
 
         $this->assertSame($data, $properties);
     }
 
     public function testGetDefinedProperty () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = 'Foo';
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'Foo';
 
-        $this->assertSame('Foo', $string['name']);
+        $this->assertSame('Foo', $foo['name']);
     }
 
     /**
      * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
-     * @expectedExceptionMessage Property is not in the object definition.
+     * @expectedExceptionMessage Cannot get property that is not in the object definition.
      */
     public function testGetUndefinedProperty () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['undefined_property'];
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['undefined_property'];
     }
 
     /**
@@ -51,12 +52,12 @@ class GetTest extends PHPUnit_Framework_TestCase {
     public function testGetDatetimeProperty ($property_name) {
         $arbitrary_timestamp = time();
 
-        $datetime = new \Sandbox\Model\Datetime($this->db);
-        $datetime[$property_name] = $arbitrary_timestamp;
+        $foo = new \Sandbox\Model\Datetime($this->db);
+        $foo[$property_name] = $arbitrary_timestamp;
 
-        $datetime->save();
+        $foo->save();
 
-        $this->assertSame($arbitrary_timestamp, $datetime[$property_name]);
+        $this->assertSame($arbitrary_timestamp, $foo[$property_name]);
     }
 
     public function getDatetimePropertyProvider () {
@@ -67,26 +68,26 @@ class GetTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testIssetDefinedProperty () {
-        $string = new \Sandbox\Model\String($this->db);
+        $foo = new \Sandbox\Model\String($this->db);
 
-        $string['name'] = 'Foo';
+        $foo['name'] = 'Foo';
         
-        $this->assertTrue(isset($string['name']));
+        $this->assertTrue(isset($foo['name']));
     }
 
     public function testIssetUndefinedProperty () {
-        $string = new \Sandbox\Model\String($this->db);
+        $foo = new \Sandbox\Model\String($this->db);
         
-        $this->assertFalse(isset($string['undefined_property']));
+        $this->assertFalse(isset($foo['undefined_property']));
     }
 
     /**
      * @dataProvider unsetPropertyProvider
      */
     public function testUnsetProperty ($property_name) {
-        $string = new \Sandbox\Model\String($this->db);
+        $foo = new \Sandbox\Model\String($this->db);
         
-        unset($string[$property_name]);
+        unset($foo[$property_name]);
     }
 
     public function unsetPropertyProvider () {

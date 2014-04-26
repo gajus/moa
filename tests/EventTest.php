@@ -6,10 +6,10 @@ class EventTest extends PHPUnit_Framework_TestCase {
     public function setUp () {
         $this->db = new \PDO('mysql:dbname=moa', 'travis');
         $this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-
         $this->db->exec("TRUNCATE TABLE `datetime`");
         $this->db->exec("TRUNCATE TABLE `duplicate`");
         $this->db->exec("TRUNCATE TABLE `greedy`");
+        $this->db->exec("TRUNCATE TABLE `greedy_timestamp`");
         $this->db->exec("TRUNCATE TABLE `number`");
         $this->db->exec("TRUNCATE TABLE `string`");
     }
@@ -19,21 +19,21 @@ class EventTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionCode 1
      */
     public function testAfterInsert () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = 'throw_after_insert';
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'throw_after_insert';
+        $foo->save();
     }
 
     public function testAfterInsertRecover () {
         $properties = ['name' => 'throw_after_insert'];
 
-        $string = new \Sandbox\Model\String($this->db);
-        $string->populate($properties);
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo->populate($properties);
         
         try {
-            $string->save();
+            $foo->save();
         } catch (\RuntimeException $e) {
-            $this->assertSame($properties, $string->getProperties());
+            $this->assertSame($properties, $foo->getProperties());
         }
     }
 
@@ -42,23 +42,23 @@ class EventTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionCode 2
      */
     public function testAfterUpdate () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = 'throw_after_update';
-        $string->save();
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'throw_after_update';
+        $foo->save();
+        $foo->save();
     }
 
     public function testAfterUpdateRecover () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = 'throw_after_update';
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'throw_after_update';
+        $foo->save();
 
-        $properties = $string->getProperties();
+        $properties = $foo->getProperties();
         
         try {
-            $string->save();
+            $foo->save();
         } catch (\RuntimeException $e) {
-            $this->assertSame($properties, $string->getProperties());
+            $this->assertSame($properties, $foo->getProperties());
         }
     }
 
@@ -67,23 +67,23 @@ class EventTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionCode 3
      */
     public function testAfterDelete () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = 'throw_after_delete';
-        $string->save();
-        $string->delete();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'throw_after_delete';
+        $foo->save();
+        $foo->delete();
     }
 
     public function testAfterDeleteRecover () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = 'throw_after_delete';
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'throw_after_delete';
+        $foo->save();
 
-        $properties = $string->getProperties();
+        $properties = $foo->getProperties();
         
         try {
-            $string->delete();
+            $foo->delete();
         } catch (\RuntimeException $e) {
-            $this->assertSame($properties, $string->getProperties());
+            $this->assertSame($properties, $foo->getProperties());
         }
     }
 }

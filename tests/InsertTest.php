@@ -15,29 +15,29 @@ class InsertTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testInsertWithAllDefaultValues () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo->save();
     }
 
     public function testNotNullableButDefault () {
-        $greedy_timestamp = new \Sandbox\Model\GreedyTimestamp($this->db);
-        $greedy_timestamp->save();
+        $foo = new \Sandbox\Model\GreedyTimestamp($this->db);
+        $foo->save();
     }
 
     public function testInsert () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = 'Foo';
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'Foo';
+        $foo->save();
 
-        $this->assertSame('Foo', $string['name']);
+        $this->assertSame('Foo', $foo['name']);
     }
 
     /**
-     * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
-     * @expectedExceptionMessage Object initialised without required property: "name".
+     * @expectedException Gajus\MOA\Exception\LogicException
+     * @expectedExceptionMessage Cannot initialise object without all required properties.
      */
     public function testInsertWithuotRequiredProperties () {
-        $greedy = new \Sandbox\Model\Greedy($this->db);
-        $greedy->save();
+        $foo = new \Sandbox\Model\Greedy($this->db);
+        $foo->save();
     }
 }

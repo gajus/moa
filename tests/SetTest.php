@@ -15,40 +15,46 @@ class SetTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testSetProperty () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = 'Test';
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'Test';
 
-        $this->assertSame('Test', $string['name']);
+        $this->assertSame('Test', $foo['name']);
     }
 
     public function testSetNullablePropertyToNull () {
-        $string = new \Sandbox\Model\Number($this->db);
-        $string['tinyint'] = null;
+        $foo = new \Sandbox\Model\Number($this->db);
+        $foo['tinyint'] = null;
 
-        $this->assertSame(null, $string['tinyint']);
+        $this->assertSame(null, $foo['tinyint']);
     }
 
+    /**
+     * In this case, unset must be used insteat of setting value to null.
+     * 
+     * @expectedException Gajus\MOA\Exception\InvalidArgumentException
+     * @expectedExceptionMessage Datetime must be either decimal UNIX timestamp or MySQL datetime string.
+     */
     public function testSetDefaultablePropertyToNull () {
-        $greedy_timestamp = new \Sandbox\Model\GreedyTimestamp($this->db);
-        $greedy_timestamp['timestamp'] = null;
-        $greedy_timestamp->save();
+        $foo = new \Sandbox\Model\GreedyTimestamp($this->db);
+        $foo['timestamp'] = null;
+        $foo->save();
     }
 
     public function testSetDatetimePropertyUsingDatetime () {
-        $datetime = new \Sandbox\Model\Datetime($this->db);
-        $datetime['datetime'] = '2014-01-02 05:31:20';
-        $datetime->save();
+        $foo = new \Sandbox\Model\Datetime($this->db);
+        $foo['datetime'] = '2014-01-02 05:31:20';
+        $foo->save();
 
-        $this->assertSame(strtotime('2014-01-02 05:31:20'), $datetime['datetime']);
+        $this->assertSame(strtotime('2014-01-02 05:31:20'), $foo['datetime']);
     }
 
     /**
      * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
-     * @expectedExceptionMessage Trying to set non-object property "undefined_property".
+     * @expectedExceptionMessage Cannot set property that is not in the object definition.
      */
     public function testSetUndefinedProperty () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['undefined_property'] = 'test';
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['undefined_property'] = 'test';
     }
 
     /**
@@ -56,18 +62,18 @@ class SetTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionMessage Primary key value cannot be changed.
      */
     public function testSetPrimaryKeyPropertyOfInflatedObject () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['id'] = 1;
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['id'] = 1;
     }
 
     /**
      * @dataProvider setDatetimePropertyProvider
      * @expectedException Gajus\MOA\Exception\InvalidArgumentException
-     * @expectedExceptionMessage Propery must be either decimal UNIX timestamp or MySQL datetime string.
+     * @expectedExceptionMessage Invalid datetime format.
      */
     public function testSetDatetimeProperty ($property_name) {
-        $datetime = new \Sandbox\Model\Datetime($this->db);
-        $datetime[$property_name] = 'test';
+        $foo = new \Sandbox\Model\Datetime($this->db);
+        $foo[$property_name] = 'test';
     }
 
     public function setDatetimePropertyProvider () {
@@ -83,8 +89,8 @@ class SetTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionMessage Propery must be a decimal digit.
      */
     public function testSetNumberProperty ($property_name) {
-        $number = new \Sandbox\Model\Number($this->db);
-        $number[$property_name] = 'foo';
+        $foo = new \Sandbox\Model\Number($this->db);
+        $foo[$property_name] = 'foo';
     }
 
     public function setNumberPropertyProvider () {
@@ -105,8 +111,8 @@ class SetTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionMessage Property does not conform to the column's maxiumum character length limit
      */
     public function testSetTooLongPropertyValue () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = str_repeat('a', 101);
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = str_repeat('a', 101);
     }
 
     #public function testCustomrValidator () {

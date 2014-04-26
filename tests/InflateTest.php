@@ -9,20 +9,21 @@ class InflateTest extends PHPUnit_Framework_TestCase {
         $this->db->exec("TRUNCATE TABLE `datetime`");
         $this->db->exec("TRUNCATE TABLE `duplicate`");
         $this->db->exec("TRUNCATE TABLE `greedy`");
+        $this->db->exec("TRUNCATE TABLE `greedy_timestamp`");
         $this->db->exec("TRUNCATE TABLE `number`");
         $this->db->exec("TRUNCATE TABLE `string`");
     }
 
     public function testInflateUsingPrimaryKey () {
-        $string = new \Sandbox\Model\String($this->db);
+        $foo = new \Sandbox\Model\String($this->db);
 
-        $string->save();
+        $foo->save();
 
-        $properties = $string->getProperties();
+        $properties = $foo->getProperties();
 
-        $string = new \Sandbox\Model\String($this->db, $string['id']);
+        $foo = new \Sandbox\Model\String($this->db, $foo['id']);
 
-        $this->assertSame($properties, $string->getProperties());
+        $this->assertSame($properties, $foo->getProperties());
     }
 
     /**
@@ -42,14 +43,15 @@ class InflateTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testInflateUsingAllProperties () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'test';
+        $foo->save();
 
-        $properties = $string->getProperties();
+        $properties = $foo->getProperties();
 
-        $string = new \Sandbox\Model\String($this->db, $properties);
+        $foo = new \Sandbox\Model\String($this->db, $properties);
 
-        $this->assertSame($properties, $string->getProperties());
+        $this->assertSame($properties, $foo->getProperties());
     }
 
     /**
@@ -57,13 +59,13 @@ class InflateTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionMessage Cannot inflate existing object without all properties. Missing "name".
      */
     public function testInflateUsingSomeProperties () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo->save();
 
-        $properties = $string->getProperties();
+        $properties = $foo->getProperties();
 
         unset($properties['name']);
 
-        $string = new \Sandbox\Model\String($this->db, $properties);
+        $foo = new \Sandbox\Model\String($this->db, $properties);
     }
 }

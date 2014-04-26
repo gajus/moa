@@ -4,16 +4,14 @@ class DeleteTest extends PHPUnit_Framework_TestCase {
         $db;
 
     public function setUp () {
-        if (!$this->db) {
-            $this->db = new \PDO('mysql:dbname=moa', 'travis');
-            $this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        }
-
+        $this->db = new \PDO('mysql:dbname=moa', 'travis');
+        $this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->db->exec("TRUNCATE TABLE `datetime`");
         $this->db->exec("TRUNCATE TABLE `duplicate`");
         $this->db->exec("TRUNCATE TABLE `greedy`");
+        $this->db->exec("TRUNCATE TABLE `greedy_timestamp`");
         $this->db->exec("TRUNCATE TABLE `number`");
-        $this->db->exec("TRUNCATE TABLE `string`");        
+        $this->db->exec("TRUNCATE TABLE `string`");
     }
 
     public function testDeleteExistingObject () {

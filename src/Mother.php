@@ -172,7 +172,10 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			throw new Exception\LogicException('Primary key value cannot be changed.');
 		}
 
-		// Trigger an exception in case property is not in the object definition.
+		if (!isset(static::$columns[$name])) {
+			throw new Exception\UndefinedPropertyException('Cannot set property that is not in the object definition.');
+		}
+
 		// This value is used to determine whether object state has been affected.
 		$value_before_set = $this->get($name);
 
@@ -186,49 +189,52 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			throw new Exception\InvalidArgumentException('Value is not scalar.');
 		}
 
-		switch (static::$columns[$name]['data_type']) {
-			case 'datetime':
-			case 'timestamp':
-				if (is_int($value) || ctype_digit($value)) {
-					$value = (int) $value;
-				} else if (is_string($value)) {
-					// MySQL timestamp
-					$datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
+		// If property is nullable and value is null, then none of the validation or normalisation is relevant.
+		if (!static::$columns[$name]['is_nullable'] || !is_null($value)) {
+			switch (static::$columns[$name]['data_type']) {
+				case 'datetime':
+				case 'timestamp':
+					if (is_int($value) || ctype_digit($value)) {
+						$value = (int) $value;
+					} else if (is_string($value)) {
+						// MySQL timestamp
+						$datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
 
-					if (!$datetime) {
-						throw new Exception\InvalidArgumentException('Invalid datetime format.');
+						if (!$datetime) {
+							throw new Exception\InvalidArgumentException('Invalid datetime format.');
+						}
+						$value = $datetime->getTimestamp();
+					} else {
+						throw new Exception\InvalidArgumentException('Datetime must be either decimal UNIX timestamp or MySQL datetime string.');
 					}
-					$value = $datetime->getTimestamp();
-				} else {
-					throw new Exception\InvalidArgumentException('Datetime must be either decimal UNIX timestamp or MySQL datetime string.');
-				}
-				
-				break;
+					
+					break;
 
-			case 'tinyint':
-			case 'smallint':
-			case 'mediumint':
-			case 'int':
-			case 'bigint':
-				if (!is_int($value) && !ctype_digit($value)) {
-					throw new Exception\InvalidArgumentException('Propery must be a decimal digit.');
-				}
+				case 'tinyint':
+				case 'smallint':
+				case 'mediumint':
+				case 'int':
+				case 'bigint':
+					if (!is_int($value) && !ctype_digit($value)) {
+						throw new Exception\InvalidArgumentException('Propery must be a decimal digit.');
+					}
 
-				break;
+					break;
 
-			default:
-				if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
-					throw new Exception\InvalidArgumentException('Property does not conform to the column\'s maxiumum character length limit.');
-				}
-				break;
-		}
+				default:
+					if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
+						throw new Exception\InvalidArgumentException('Property does not conform to the column\'s maxiumum character length limit.');
+					}
+					break;
+			}
 
-		// @todo Use the validate method.
+			// @todo Use the validate method.
 
-		// If an existing object property is a string, then new value will be casted to string
-		// regardless of its existing type.
-		if (is_string($value)) {
-			$value_before_set = (string) $value_before_set;
+			// If an existing object property is a string, then new value will be casted to string
+			// regardless of its existing type.
+			if (is_string($value_before_set)) {
+				$value = (string) $value;
+			}
 		}
 
 		if ($value === $value_before_set) {
@@ -255,7 +261,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	 */
 	public function get ($name) {
 		if (!isset(static::$columns[$name])) {
-			throw new Exception\UndefinedPropertyException('Property is not in the object definition.');
+			throw new Exception\UndefinedPropertyException('Cannot get property that is not in the object definition.');
 		}
 		
 		return isset($this->data[$name]) ? $this->data[$name] : null;
@@ -293,7 +299,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 
 		foreach ($required_property_names as $required_property_name) {
 			if (!isset($this->data[$required_property_name])) {
-				throw new Exception\LogicException('Object initialised without required property.');
+				throw new Exception\LogicException('Cannot initialise object without all required properties.');
 			}
 		}
 
@@ -314,7 +320,9 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 				// Update only columns that were changed.
 				$data = $this->updated_properties;
 			} else {
-				// @todo https://github.com/gajus/moa/issues/1
+				// @see https://github.com/gajus/moa/issues/1
+				$this->afterUpdate();
+
 				return $this;
 			}
 		}
