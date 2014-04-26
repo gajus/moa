@@ -12,28 +12,34 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		 */
 		$db,
 		/**
-		 * Application data copy. This is used to instantiate new objects
-		 * as well as to carry a copy of database object data for manipulation.
+		 * Used to instantiate new object.
 		 * 
 		 * @var array
 		 */
 		$data = [];
 
 	private
+		/**
+		 * @var int Number of times that object data has been synchronised with the database.
+		 */
 		$synchronisation_count = 0,
 		/**
 		 * Used to update only the changed properties.
+		 *
 		 * @var array
 		 */
 		$updated_columns = [];
 
 	protected
 		/**
-		 * var Psr\Log\LoggerInterface
+		 * @var Psr\Log\LoggerInterface
 		 */
 		$logger;
 
 	static private
+		/**
+		 * @var array Used to map MySQL column type to PDO parameter type.
+		 */
 		$parameter_type_map = [
 			'int' => \PDO::PARAM_INT,
 			'bigint' => \PDO::PARAM_INT,
@@ -56,7 +62,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		} else if (is_array($data)) {
 			if (isset($data[static::PRIMARY_KEY_NAME])) {
 				if ($diff = array_keys(array_diff_key(static::$columns, $data))) {
-					throw new \Gajus\MOA\Exception\UndefinedPropertyException('Cannot inflate existing object without all properties. Missing "' . implode(', ', $diff) . '".');
+					throw new Exception\UndefinedPropertyException('Cannot inflate existing object without all properties. Missing "' . implode(', ', $diff) . '".');
 				}
 
 				$this->data[static::PRIMARY_KEY_NAME] = $data[static::PRIMARY_KEY_NAME];
@@ -70,7 +76,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		} else if (is_null($data)) {
 			$this->data = [];
 		} else {
-			throw new \Gajus\MOA\Exception\InvalidArgumentException('Invalid argument type.');
+			throw new Exception\InvalidArgumentException('Invalid argument type.');
 		}
 	}
 
@@ -92,7 +98,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		$this->logger->debug('Synchronising object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME]);
 
 		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
-			throw new \Gajus\MOA\Exception\Logic_Exception('Primary key is not set.');
+			throw new Exception\Logic_Exception('Primary key is not set.');
 		}
 
 		$this->synchronisation_count++;
@@ -102,15 +108,13 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		$sth->execute([$this->data[static::PRIMARY_KEY_NAME]]);
 		$this->data = $sth->fetch(\PDO::FETCH_ASSOC);
 
-		#if (isset($GLOBALS['test'])) bump("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?", $this->data);
-
 		if (!$this->data) {
-			throw new \Gajus\MOA\Exception\RecordNotFoundException('Primary key value does not refer to an existing record.');
+			throw new Exception\RecordNotFoundException('Primary key value does not refer to an existing record.');
 		}
 
 		foreach (static::$columns as $name => $column) {
 			if (!array_key_exists($name, $this->data)) {
-				throw new \Gajus\MOA\Exception\LogicException('Model does not reflect table.');
+				throw new Exception\LogicException('Model does not reflect table.');
 			}
 
 			// @todo Add as a test condition.
@@ -118,8 +122,6 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 				$this->data[$name] = strtotime($this->data[$name]);
 			}
 		}
-
-		#if (isset($GLOBALS['test'])) bump("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?", $this->data);
 
 		$this->updated_columns = [];
 	}
@@ -156,52 +158,75 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		$this->logger->debug('Setting property value.', ['method' => __METHOD__, 'object' => static::TABLE_NAME, 'property' => ['name' => $name, 'value' => $value]]);
 
 		if (!is_string($name)) {
-			throw new \Gajus\MOA\Exception\InvalidArgumentException('Property name is not a string.');
+			throw new Exception\InvalidArgumentException('Name is not a string.');
 		} else if ($name === static::PRIMARY_KEY_NAME) {
-			throw new \Gajus\MOA\Exception\LogicException('Primary key value cannot be changed.');
-		} else if (!isset(static::$columns[$name])) {
-			throw new \Gajus\MOA\Exception\UndefinedPropertyException('Trying to set non-object property "' . $name . '".');
+			throw new Exception\LogicException('Primary key value cannot be changed.');
 		}
 
-		if (is_null($value) && !in_array($name, array_keys($this->getRequiredProperties()))) {
+		// Trigger an exception easy in case property is not in the object definition.
+		$value_before_set = $this->get($name);
+
+		if (is_null($value)) {
+			$required_property_names = array_keys($this->getRequiredProperties());
+
+			if (in_array($name, $required_property_names)) {
+				throw new Exception\InvalidArgumentException('Value canont be null.');
+			}
+		} else if (!is_scalar($value)) {
+			throw new Exception\InvalidArgumentException('Value is not scalar.');
+		}
+
+		switch (static::$columns[$name]['data_type']) {
+			case 'datetime':
+			case 'timestamp':
+				if (is_string($value)) {
+					$datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
+
+					if ($datetime) {
+						$value = $datetime->getTimestamp();
+					}
+				}
+
+				if (!is_int($value) && !ctype_digit($value)) {
+					throw new Exception\InvalidArgumentException('Propery must be either decimal UNIX timestamp or MySQL datetime string.');
+				}
+				
+				break;
+
+			case 'tinyint':
+			case 'smallint':
+			case 'mediumint':
+			case 'int':
+			case 'bigint':
+				if (!is_int($value) && !ctype_digit($value)) {
+					throw new Exception\InvalidArgumentException('Propery must be a decimal digit.');
+				}
+
+				break;
+
+			default:
+				if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
+					throw new Exception\InvalidArgumentException('Property does not conform to the column\'s maxiumum character length limit.');
+				}
+				break;
+		}
+
+
+		
+
+
+
+
+		
+
+		
+
+
+
+		if (is_null($value) && !in_array($name, array_keys())) {
 			// @todo Document the purpose of the inverse condition.
 		} else {
-			switch (static::$columns[$name]['data_type']) {
-				case 'datetime':
-				case 'timestamp':
-					if (is_string($value)) {
-						$datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
-
-						if ($datetime) {
-							$value = $datetime->getTimestamp();
-						}
-					}
-
-					if (!is_int($value) && !ctype_digit($value)) {
-						throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be either decimal UNIX timestamp or MySQL datetime string.');
-					}
-					
-					break;
-
-				/*case 'tinyint':
-				case 'smallint':
-				case 'mediumint':
-				case 'int':
-				case 'bigint':
-					if (!is_int($value) && !ctype_digit($value)) {
-						throw new \Gajus\MOA\Exception\InvalidArgumentException('Propery must be a decimal digit.');
-					}
-
-					// @todo check range
-
-					break;*/
-
-				default:
-					if (!is_null(static::$columns[$name]['character_maximum_length']) && static::$columns[$name]['character_maximum_length'] < mb_strlen($value)) {
-						throw new \Gajus\MOA\Exception\InvalidArgumentException('Property does not conform to the column\'s maxiumum character length limit.');
-					}
-					break;
-			}
+			
 		}
 
 		if (array_key_exists($name, $this->data) && $this->data[$name] === $value) {
@@ -226,15 +251,13 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	 */
 	public function get ($name) {
 		if (!isset(static::$columns[$name])) {
-			throw new \Gajus\MOA\Exception\UndefinedPropertyException('Trying to get non-object property "' . $name . '".');
+			throw new Exception\UndefinedPropertyException('Property is not in the object definition.');
 		}
 		
 		return isset($this->data[$name]) ? $this->data[$name] : null;
 	}
 
 	/**
-	 * Return names of the properties that cannot be left without value.
-	 * 
 	 * @return array
 	 */
 	public function getRequiredProperties () {
@@ -271,7 +294,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			}
 
 			if (!$property_set && in_array($name, $required_properties)) {
-				throw new \Gajus\MOA\Exception\UndefinedPropertyException('Object initialised without required property: "' . $name . '".');
+				throw new Exception\UndefinedPropertyException('Object initialised without required property: "' . $name . '".');
 			}
 		}
 
@@ -309,7 +332,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		
 		// @todo What about object an object with all properties having a default value?
 		if ($is_insert && !$placeholders) {
-			throw new \Gajus\MOA\Exception\LogicException('Cannot insert object without any values.');
+			throw new Exception\LogicException('Cannot insert object without any values.');
 		}
 
 		if ($placeholders) {
@@ -380,16 +403,16 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	
 	/**
 	 * Delete object from the database. Deleted object retains its data except for the primary key value.
-	 * Saving deleted object will cause the object to be created with a new primary key value.
 	 * 
 	 * @return gajus\MOA\Mother
 	 */
 	public function delete () {
 		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
-			throw new \Gajus\MOA\Exception\LogicException('Cannot delete not initialised object.');
+			return $this;
 		}
 		
-		$this->db->beginTransaction();
+		$this->db
+			->beginTransaction();
 		
 		$this->db
 			->prepare("DELETE FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?")
@@ -454,8 +477,6 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	 * @return boolean
 	 */
 	public function offsetExists ($offset) {
-		#bump($this->data, $offset, isset($this->data[$offset]));
-
 		return isset($this->data[$offset]);
 	}
 	

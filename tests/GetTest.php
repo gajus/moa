@@ -38,7 +38,7 @@ class GetTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @expectedException Gajus\MOA\Exception\UndefinedPropertyException
-     * @expectedExceptionMessage Trying to get non-object property "undefined_property".
+     * @expectedExceptionMessage Property is not in the object definition.
      */
     public function testGetUndefinedProperty () {
         $string = new \Sandbox\Model\String($this->db);

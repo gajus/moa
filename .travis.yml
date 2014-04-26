@@ -14,7 +14,7 @@ before_script:
     - mkdir -p build/logs
     - sh -c "if [ '$DB' = 'mysql' ]; then mysql -e 'drop database if exists moa; create database moa;'; fi"
     - sh -c "if [ '$DB' = 'mysql' ]; then mysql moa < tests/data/moa.sql; fi"
-    - sh -c "php ./bin/build.php --namespace \"Sandbox\Model\MOA\" --database \"moa\" --user \"travis\" --path \"./tests/Sandbox/Model/MOA\" --clean"
+    - sh -c 'php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --user "travis" --path "./tests/Sandbox/Model/MOA" --clean'
 
 script:
     - phpunit --verbose --coverage-clover build/logs/clover.xml
