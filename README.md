@@ -95,6 +95,80 @@ Gajus\MOA\Mother
                 your hand-typed domain logic [optional]
 ```
 
+## API
+
+This section of the documentation is using code examples to introduce you to the API.
+
+### Create and Update Object
+
+#### To Create a New Object
+
+```php
+/**
+ * @param PDO $db
+ * @param mixed $data
+ */
+$person = new \My\App\Model\Person($db);
+
+// Set property
+$person['name'] = 'Foo';
+
+// Insert object to the database
+$person->save();
+
+$person['name'] = 'Bar';
+
+// Update object
+$person->save();
+```
+
+### Delete Object
+
+```php
+$person->delete();
+```
+
+### Inflate Object
+
+#### Inflate Object Using the Primary Key Value
+
+```php
+$person = new \My\App\Model\Person($db, 1);
+```
+
+Object data is retrieved from the database where primary key value is "1".
+
+#### Inflate Object From Data
+
+```php
+$person = new \My\App\Model\Person($db, ['id' => 1, 'name' => 'Foo']);
+```
+
+This code assumes that you already have a record in the database with this primary key.
+
+### Getters and Setters
+
+MOA implements `ArrayAccess` interface. You can manipulate object properties using the array syntax, e.g.
+
+```php
+<?php
+$car = new \My\App\Model\Car($db);
+$car['colour'] = 'red';
+$car->save();
+```
+
+If you need to set multiple properties at once:
+
+```php
+/**
+ * Shorthand method to pass each array key, value pair to the setter.
+ *
+ * @param array $data
+ * @return gajus\MOA\Mother
+ */
+public function populate (array $data);
+```
+
 ## Naming Convention
 
 MOA assumes that your models are writen using CamelCase convention (e.g. `MyTableName`). Table names must be singular (e.g. `Car` not `Cars`). MOA generated models will use CamelCase convention.
@@ -144,6 +218,15 @@ class Car extends \Dynamically\Generated\Car {
 ```
 
 > MOA convention is to prefix method names "getMany[Where]" for methods that return array and "get[Where]" that return an instance of `Mother`.
+
+#### Triggers
+
+|Name|Description|
+|`afterInsert`|Triggered after `INSERT` but before the transaction is commited.|
+|`afterUpdate`|Triggered after `UPDATE` but before the transaction is commited.|
+|`afterDelete`|Triggered after `DELETE` but before the transaction is commited.|
+
+Each of the above methods can interrupt the respective transaction.
 
 ## Builder Script
 
