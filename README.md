@@ -115,13 +115,13 @@ $person['name'] = 'Foo';
 
 // Insert object to the database
 $person->save();
-// $person['id'] 1
+# $person['id'] 1
 
 $person['name'] = 'Bar';
 
 // Update object
 $person->save();
-// $person['id'] 1
+# $person['id'] 1
 ```
 
 ### Delete Object
@@ -130,14 +130,14 @@ Deleting object will remove the associated entry from the database and unset the
 
 ```php
 $person->delete();
-// $person['id'] null
+# $person['id'] null
 ```
 
 However, it does not discard the object property values. If you were to save the same object again, it would be inserted to the database:
 
 ```php
 $person->save();
-// $person['id'] 2
+# $person['id'] 2
 ```
 
 ### Inflate Object
