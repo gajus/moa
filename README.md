@@ -101,12 +101,12 @@ abstract class Person extends \Gajus\MOA\Mother {
 
 ### Create and Update
 
-Object is inserted and updated using `save` method. Object is inserted to the database if instancy primary key property has no value. Otherwise, object is updated using the primary key property value.
+Object is inserted and updated using `save` method. Object is inserted to the database if instance primary key property has no value. Otherwise, object is updated using the primary key property value.
 
 ```php
 /**
  * @param PDO $db
- * @param mixed $data
+ * @param int $id
  */
 $person = new \My\App\Model\Person($db);
 
