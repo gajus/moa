@@ -56,6 +56,8 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		$this->db = $db;
 		$this->logger = new \Psr\Log\NullLogger();
 
+		// If $data is an integer, then it is assumed by the primary key
+		// of an existing record in the database.
 		if (is_int($data) || ctype_digit($data)) {
 			$this->data[static::PRIMARY_KEY_NAME] = $data;
 			$this->synchronise();
@@ -91,17 +93,22 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 
 	/**
 	 * Use the primary key to update object instance with the data from the database.
+	 * This will overwrite the existing state of the object.
 	 * 
 	 * @return void
 	 */
-	final private function synchronise () {
+	private function synchronise () {
 		$this->logger->debug('Synchronising object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME]);
 
 		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
-			throw new Exception\Logic_Exception('Primary key is not set.');
+			throw new Exception\LogicException('Primary key is not set.');
 		}
 
-		$this->synchronisation_count++;
+		if ($this->updated_columns) {
+			die(var_dump( $this->updated_columns ));
+
+			throw new Exception\LogicException('Obeject state has not been saved prior synchronisation.');
+		}
 
 		$sth = $this->db
 			->prepare("SELECT * FROM `" . static::TABLE_NAME . "` WHERE `" . static::PRIMARY_KEY_NAME . "` = ?");
@@ -123,7 +130,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			}
 		}
 
-		$this->updated_columns = [];
+		$this->synchronisation_count++;
 	}
 	
 	/**
@@ -277,45 +284,44 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	 * this method will either attempt to insert the object to the database or update an
 	 * existing entry.
 	 *
-	 * @return gajus\MOA\Mother
+	 * @return $this
 	 */
 	public function save () {
 		$this->logger->debug('Saving object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME]);
 
-		$required_properties = array_keys($this->getRequiredProperties());
+		// Make sure that all required object properties have a value.
+		$required_property_names = array_keys($this->getRequiredProperties());
 
-		foreach (static::$columns as $name => $column) {
-			$property_set = array_key_exists($name, $this->data);
-
-			if ($property_set && is_null($this->data[$name])) {
-				unset($this->data[$name]);
-
-				$property_set = false;
-			}
-
-			if (!$property_set && in_array($name, $required_properties)) {
-				throw new Exception\UndefinedPropertyException('Object initialised without required property: "' . $name . '".');
+		foreach ($required_property_names as $required_property_name) {
+			if (!isset($this->data[$required_property_name])) {
+				throw new Exception\LogicException('Object initialised without required property.');
 			}
 		}
 
-		$before_data = $this->data; // Used to recover in case of Exception in "after" event.
+		// Object state backup to recover in case of an Exception in the "after" event.
+		$data_before_save = $this->data;
 		
-		$is_insert = !isset($this->data[static::PRIMARY_KEY_NAME]);
-		$data = $this->data;
+		$is_insert = false;
 
-		if ($is_insert) {
+		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
 			$this->logger->debug('Preparing to insert new object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME]);
 
+			$data = $this->data;
 			$data[static::PRIMARY_KEY_NAME] = null;
 
-		// Update only columns that were changed.
-		} else if ($this->updated_columns) {
-			$data = $this->updated_columns;
-		// Nothing to do.
+			$is_insert = true;
 		} else {
-			$data = [];
+			if ($this->updated_columns) {
+				// Update only columns that were changed.
+				$data = $this->updated_columns;
+			} else {
+				// @todo https://github.com/gajus/moa/issues/1
+				return $this;
+			}
 		}
 
+		// Prepare placeholders for the PDOStatement.
+		// "datetime" and "timestamp" object properties are in their integer (UNIX timestamp) representation.
 		$placeholders = [];
 
 		foreach (array_keys($data) as $property_name) {
@@ -326,54 +332,43 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			}
 		}
 
-		#$this->logger->debug('Preparing to ' . ($is_insert ? 'insert' : 'update') . ' object.', ['method' => __METHOD__, 'object' => static::TABLE_NAME, 'placeholders' => $placeholders]);
+		$placeholders = implode(', ', $placeholders);
 
-		// If update would not affect database.
-		
-		// @todo What about object an object with all properties having a default value?
-		if ($is_insert && !$placeholders) {
-			throw new Exception\LogicException('Cannot insert object without any values.');
-		}
+		try {
+			$this->db->beginTransaction();
 
-		if ($placeholders) {
-			$placeholders = implode(', ', $placeholders);
+			if ($is_insert) {
+				$sth = $this->db
+					->prepare("INSERT INTO `" . static::TABLE_NAME . "` SET " . $placeholders);
+			} else {
+				$sth = $this->db
+					->prepare("UPDATE `" . static::TABLE_NAME . "` SET " . $placeholders . " WHERE `" . static::PRIMARY_KEY_NAME . "` = :" . static::PRIMARY_KEY_NAME);
 
-			try {
-				$this->db->beginTransaction();
+				$data[static::PRIMARY_KEY_NAME] = $this->data[static::PRIMARY_KEY_NAME];
+			}
+			
+			foreach ($data as $k => $v) {
+				$sth->bindValue($k, $v, isset(self::$parameter_type_map[static::$columns[$k]['data_type']]) ? self::$parameter_type_map[static::$columns[$k]['data_type']] : \PDO::PARAM_STR);
+			}
+			
+			$sth->execute();
 
-				if ($is_insert) {
-					$sth = $this->db
-						->prepare("INSERT INTO `" . static::TABLE_NAME . "` SET {$placeholders}");
-				} else {
-					$sth = $this->db
-						->prepare("UPDATE `" . static::TABLE_NAME . "` SET {$placeholders} WHERE `" . static::PRIMARY_KEY_NAME . "` = :" . static::PRIMARY_KEY_NAME);
-
-					$data[static::PRIMARY_KEY_NAME] = $this->data[static::PRIMARY_KEY_NAME];
-				}
-				
-				foreach ($data as $k => $v) {
-					$sth->bindValue($k, $v, isset(self::$parameter_type_map[static::$columns[$k]['data_type']]) ? self::$parameter_type_map[static::$columns[$k]['data_type']] : \PDO::PARAM_STR);
-				}
-				
-				$sth->execute();
-
-				if ($is_insert) {
-					$this->data[static::PRIMARY_KEY_NAME] = $this->db->lastInsertId();
-				}
-			} catch (\PDOException $e) {
-				if ($this->db->inTransaction()) {
-					$this->db->rollBack();
-				}
-
-				if ($e->getCode() === '23000') {
-					throw new Exception\ConstraintViolationException($e->getMessage(), 0, $e);
-				}
-
-				throw $e;
+			if ($is_insert) {
+				$this->data[static::PRIMARY_KEY_NAME] = $this->db->lastInsertId();
+			}
+		} catch (\PDOException $e) {
+			if ($this->db->inTransaction()) {
+				$this->db->rollBack();
 			}
 
-			$this->synchronise();
+			if ($e->getCode() === '23000') {
+				throw new Exception\ConstraintViolationException($e->getMessage(), 0, $e);
+			}
+
+			throw $e;
 		}
+
+		$this->synchronise();
 		
 		try {
 			if ($is_insert) {
@@ -387,7 +382,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 					$this->db->rollBack();
 				}
 
-				$this->data = $before_data;
+				$this->data = $data_before_save;
 				$this->synchronisation_count--;
 			}
 
@@ -466,6 +461,9 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	}
 
 	/**
+	 * Synchronisation count is used for unit testing only.
+	 * This method must not be used in the application code.
+	 *
 	 * @return int
 	 */
 	public function getSynchronisationCount () {
