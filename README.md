@@ -97,7 +97,7 @@ Gajus\MOA\Mother
 
 ## API
 
-This section of the documentation is using code examples to introduce you to the API.
+This section of the documentation is using code examples from a fictional application to introduce you to the API.
 
 ### Create and Update
 
