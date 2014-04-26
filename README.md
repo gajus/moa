@@ -65,7 +65,7 @@ abstract class Greedy extends \Gajus\MOA\Mother {
 }
 ```
 
-With other Active Record implementations you do not need a generator because these properties are either hand-typed or fetched during the execution of the code. Beware that the former is tedious and error-prone, while the latter is a lazy-workaround that has a considerable performance hit.
+With other Active Record implementations you do not need a generator because these properties are either hand-typed or fetched during the execution of the code. The former is tedious and error-prone, while the latter is a lazy-workaround that has a considerable performance hit.
 
 ### Mother
 
