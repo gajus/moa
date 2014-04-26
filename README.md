@@ -69,17 +69,21 @@ With other Active Record implementations you do not need a generator because the
 
 ### Mother
 
-All models extend `Gajus\MOA\Mother`. Mother attempts to reduce number of scenarios that would otherwise cause an error only at the time of interacting with the database. This is achived by using the prefetched table attributes to work out when:
+All models extend `Gajus\MOA\Mother`. Mother attempts to reduce the number of executions that would otherwise cause an error only at the time of interacting with the database. This is achived by using the prefetched table attributes to work out when:
 
 * Accessing a non-existing property.
-* Setting proprety that does not pass in-built and custom validation logic.
+* Setting proprety that does not pass derived and custom validation logic.
 * Saving object without all the required properties.
 
-In addition to the above, Mother is tracking object state for changes and does not synchronise with the database unless object state has changed.
+Furthemore, Mother is keeping track of all the changes made to the object instance. `UPDATE` operation will exchange only modified properties. If object is saved without changes, then `UPDATE` query is not executed.
+
+> If you know a negative downside of the behaviour described above, please [contribute](https://github.com/gajus/moa/issues/1) a warning.
+
+Delete operation will remove the object reference from the database and unset the primary key property.
 
 ### Hierarchy
 
-As a result, project hierarchy is:
+When using MOA, you can choose your own namespace and have your own [base class](https://github.com/gajus/moa#mother-1). This is an example of application hierarchy incorporating all of the MOA components:
 
 ```
 Gajus\MOA\Mother
