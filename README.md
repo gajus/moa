@@ -112,22 +112,24 @@ You don't need to set anything else since all of the properties are already popu
 
 ## Building models
 
-Models are built using `./bin/build.php` CLI script. The following parameters are available:
+Models are built using `./bin/build.php` CLI script.
 
-```
---path [required] Path to the directory where the models will be created.
---database [required] MySQL database name.
---host MySQL database host.
---user MySQL database user.
---password MySQL database password.
---namespace [required] PHP class namespace;
---extends PHP class to extend. Defaults to \Gajus\MOA\Mother.
-```
+### Parameters
 
-e.g., the examples used for unit testing are built using:
+|Name|Description|
+|---|---|
+|`path`|[required] Path to the directory where the models will be created.|
+|`database`|[required] MySQL database name.|
+|`host`|MySQL database host.|
+|`user`|MySQL database user.|
+|`password`|MySQL database password.|
+|`namespace`|[required] PHP class namespace;|
+|`extends`|PHP class to extend. Defaults to "\Gajus\MOA\Mother".|
+
+e.g. Unit testing dependencies are built using:
 
 ```bash
 php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --path "./tests/Sandbox/Model/MOA"
 ```
 
-All files will be deleted from the path. Therefore, the path must include empty `.moa` file. This is a security measure to avoid accidentally truncating wrong path.
+All `.php` files will be deleted from the destination `path`. The destination `path` must have an empty `.moa` file. This requirement is a measure to prevent accidental data loss.

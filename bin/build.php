@@ -65,7 +65,7 @@ $files = glob($parameters['path'] . '/{.[!.]*,*}', \GLOB_BRACE);
 foreach ($files as $file) {
 	$basename = basename($file);
 	
-	if (strpos($basename, '.') === 0) {
+	if (mb_strpos($basename, -4) !== '.php') {
 		continue;
 	}
 
