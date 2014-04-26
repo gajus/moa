@@ -157,9 +157,11 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	}
 
 	/**
+	 * Set object property.
+	 * 
 	 * @param string $name Property name.
 	 * @param mixed $value
-	 * @return boolean True if setter affected the result set.
+	 * @return boolean Returns true if object state has been affected.
 	 */
 	public function set ($name, $value = null) {
 		$this->logger->debug('Setting property value.', ['method' => __METHOD__, 'object' => static::TABLE_NAME, 'property' => ['name' => $name, 'value' => $value]]);
@@ -170,7 +172,8 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			throw new Exception\LogicException('Primary key value cannot be changed.');
 		}
 
-		// Trigger an exception easy in case property is not in the object definition.
+		// Trigger an exception in case property is not in the object definition.
+		// This value is used to determine whether object state has been affected.
 		$value_before_set = $this->get($name);
 
 		if (is_null($value)) {
@@ -186,16 +189,18 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		switch (static::$columns[$name]['data_type']) {
 			case 'datetime':
 			case 'timestamp':
-				if (is_string($value)) {
+				if (is_int($value) || ctype_digit($value)) {
+					$value = (int) $value;
+				} else if (is_string($value)) {
+					// MySQL timestamp
 					$datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
 
-					if ($datetime) {
-						$value = $datetime->getTimestamp();
+					if (!$datetime) {
+						throw new Exception\InvalidArgumentException('Invalid datetime format.');
 					}
-				}
-
-				if (!is_int($value) && !ctype_digit($value)) {
-					throw new Exception\InvalidArgumentException('Propery must be either decimal UNIX timestamp or MySQL datetime string.');
+					$value = $datetime->getTimestamp();
+				} else {
+					throw new Exception\InvalidArgumentException('Datetime must be either decimal UNIX timestamp or MySQL datetime string.');
 				}
 				
 				break;
@@ -218,25 +223,15 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 				break;
 		}
 
+		// @todo Use the validate method.
 
-		
-
-
-
-
-		
-
-		
-
-
-
-		if (is_null($value) && !in_array($name, array_keys())) {
-			// @todo Document the purpose of the inverse condition.
-		} else {
-			
+		// If an existing object property is a string, then new value will be casted to string
+		// regardless of its existing type.
+		if (is_string($value)) {
+			$value_before_set = (string) $value_before_set;
 		}
 
-		if (array_key_exists($name, $this->data) && $this->data[$name] === $value) {
+		if ($value === $value_before_set) {
 			$this->logger->debug('Property value has not changed.', ['method' => __METHOD__, 'object' => static::TABLE_NAME, 'property' => ['name' => $name, 'value' => $value]]);
 
 			return false;
@@ -253,6 +248,8 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	}
 	
 	/**
+	 * Get object property.
+	 *
 	 * @param string $name Property name.
 	 * @return mixed
 	 */
@@ -265,6 +262,8 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	}
 
 	/**
+	 * Properties that are not nullable and do not have a default value.
+	 * 
 	 * @return array
 	 */
 	public function getRequiredProperties () {
@@ -408,7 +407,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	/**
 	 * Delete object from the database. Deleted object retains its data except for the primary key value.
 	 * 
-	 * @return gajus\MOA\Mother
+	 * @return $this
 	 */
 	public function delete () {
 		if (!isset($this->data[static::PRIMARY_KEY_NAME])) {
@@ -438,6 +437,13 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 
 		return $this;
 	}
+
+	/**
+	 * Method called at the time of setting property value.
+	 * @todo How to deal with full object validation and partial object validation.
+	 * @param array $data
+	 */
+	protected function validate (array $data) {}
 	
 	/**
 	 * Method called after object is insterted to the database.
