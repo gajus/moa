@@ -13,7 +13,7 @@ MOA (mother of all) is a database abstraction using [Active Record](http://en.wi
 
 MOA is not [ORM](http://en.wikipedia.org/wiki/Object-relational_mapping), because it does not work with collections.
 
-In general, MOA is for updating/inserting data, rather than retrieving existing data sets. Therefore, MOA does not implement elaborate finders, filters or methods for querying data. However, these libraries do:
+MOA is designed to handle [CRUD](http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations. MOA does not implement elaborate finders, filters or methods for querying data. However, these libraries do:
 
 * [PHP ActiveRecord](https://github.com/jpfuentes2/php-activerecord)
 * [Paris](https://github.com/j4mie/paris)
@@ -112,7 +112,11 @@ You don't need to set anything else since all of the properties are already popu
 
 ## Building models
 
-Models are built using `./bin/build.php` CLI script.
+Models are built using `./bin/build.php`  script, e.g. unit testing dependencies in this repository are built using:
+
+```bash
+php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --path "./tests/Sandbox/Model/MOA"
+```
 
 ### Parameters
 
@@ -125,11 +129,5 @@ Models are built using `./bin/build.php` CLI script.
 |`password`|MySQL database password.|
 |`namespace`|[required] PHP class namespace;|
 |`extends`|PHP class to extend. Defaults to "\Gajus\MOA\Mother".|
-
-e.g. Unit testing dependencies are built using:
-
-```bash
-php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --path "./tests/Sandbox/Model/MOA"
-```
 
 All `.php` files will be deleted from the destination `path`. The destination `path` must have an empty `.moa` file. This requirement is a measure to prevent accidental data loss.
