@@ -17,21 +17,24 @@ class DeleteTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testDeleteExistingObject () {
-        $string = new \Sandbox\Model\String($this->db);
-        $string['name'] = 'foo';
-        $string->save();
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'foo';
+        $foo->save();
 
-        $this->assertArrayHasKey('id', $string);
+        $this->assertArrayHasKey('id', $foo);
 
-        $string->delete();
+        $foo->delete();
 
-        $this->assertArrayHasNotKey('id', $string);
+        $this->assertArrayNotHasKey('id', $foo);
     }
 
     public function testDeleteNotExistingObject () {
-        die('test');
-        $string = new \Sandbox\Model\String($this->db);
-        #$string->assertArrayHasKey($string, 'id');
-        #$string->delete();
+        $foo = new \Sandbox\Model\String($this->db);
+        
+        $this->assertArrayNotHasKey('id', $foo);
+        
+        $foo->delete();
+
+        $this->assertArrayNotHasKey('id', $foo);
     }
 }

@@ -28,7 +28,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		 *
 		 * @var array
 		 */
-		$updated_columns = [];
+		$updated_properties = [];
 
 	protected
 		/**
@@ -74,7 +74,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 
 			$this->populate($data);
 
-			$this->updated_columns = [];
+			$this->updated_properties = [];
 		} else if (is_null($data)) {
 			$this->data = [];
 		} else {
@@ -104,8 +104,8 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			throw new Exception\LogicException('Primary key is not set.');
 		}
 
-		if ($this->updated_columns) {
-			die(var_dump( $this->updated_columns ));
+		if ($this->updated_properties) {
+			die(var_dump( $this->updated_properties ));
 
 			throw new Exception\LogicException('Obeject state has not been saved prior synchronisation.');
 		}
@@ -242,7 +242,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			return false;
 		}
 
-		$this->updated_columns[$name] = $value;
+		$this->updated_properties[$name] = $value;
 
 		// @todo Support for extended input validation.
 		# $this->validateInput($data, $value);
@@ -311,9 +311,9 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 
 			$is_insert = true;
 		} else {
-			if ($this->updated_columns) {
+			if ($this->updated_properties) {
 				// Update only columns that were changed.
-				$data = $this->updated_columns;
+				$data = $this->updated_properties;
 			} else {
 				// @todo https://github.com/gajus/moa/issues/1
 				return $this;
@@ -368,6 +368,10 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			throw $e;
 		}
 
+		$this->updated_properties = [];
+
+		// Get fresh object state from the database.
+		// This carries across properties that have default value in MySQL schema definition.
 		$this->synchronise();
 		
 		try {
@@ -377,22 +381,27 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 				$this->afterUpdate();
 			}
 		} catch (\Exception $e) {
-			if ($placeholders) {
-				if ($this->db->inTransaction()) {
-					$this->db->rollBack();
-				}
+			// An exception thrown in "afterInsert" or "afterUpdate" method will revert the change.
+			// "afterInsert" and "afterUpdate" method must not close the save transaction.
 
-				$this->data = $data_before_save;
-				$this->synchronisation_count--;
+			if (!$this->db->inTransaction()) {
+				throw new Exception\LogicException('Transaction was commited before the time.');
 			}
+
+			$this->db->rollBack();
+
+			$this->data = $data_before_save;
+			$this->synchronisation_count--;
 
 			throw $e;
 		}
 
-		if ($placeholders) {
-			$this->db->commit();
+		if (!$this->db->inTransaction()) {
+			throw new Exception\LogicException('Transaction was commited before the time.');
 		}
 
+		$this->db->commit();
+		
 		return $this;
 	}
 	
