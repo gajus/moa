@@ -26,9 +26,9 @@ MOA does not implement elaborate finders, filters or methods for querying data. 
 
 ## Hierarchy & Responsibilities
 
-### Model Builder
+### Builder
 
-MOA is using dynamic code generation to represent your database. [builder script](#building-models) generates a file for each table using attributes fetched from the database (e.g. column name, type, default value, etc.). These classes are generated dynamically to reduce the amount of hand-coded duplication of the data representation.
+MOA is using dynamic code generation to represent your database. [builder script](#builder-script) generates a file for each table using attributes fetched from the database (e.g. column name, type, default value, etc.). These classes are generated dynamically to reduce the amount of hand-coded duplication of the data representation.
 
 This is an example of generated class:
 
@@ -72,14 +72,14 @@ With other Active Record implementations you do not need a generator because the
 All models extend `Gajus\MOA\Mother`. Mother attempts to reduce the number of executions that would otherwise cause an error only at the time of interacting with the database. This is achived by using the prefetched table attributes to work out when:
 
 * Accessing a non-existing property.
-* Setting proprety that does not pass derived and custom validation logic.
+* Setting proprety that does not pass derived or custom validation logic.
 * Saving object without all the required properties.
 
-Furthemore, Mother is keeping track of all the changes made to the object instance. `UPDATE` operation will exchange only modified properties. If object is saved without changes, then `UPDATE` query is not executed.
+Furthemore, Mother is keeping track of all the changes made to the object instance. `UPDATE` query will include only the properties that have changed since the last synchronisation. If object is saved without changes, then `UPDATE` query is not executed.
 
 > If you know a negative downside of the behaviour described above, please [contribute](https://github.com/gajus/moa/issues/1) a warning.
 
-Delete operation will remove the object reference from the database and unset the primary key property.
+Delete operation will remove the object reference from the database and unset the primary key property value.
 
 ### Hierarchy
 
@@ -145,7 +145,7 @@ class Car extends \Dynamically\Generated\Car {
 
 You don't need to set anything else since all of the properties are already populated in the generated model. To view what properties are available for each table, refer to the generated models.
 
-## Building models
+## Builder Script
 
 Models are built using `./bin/build.php`  script, e.g. unit testing dependencies in this repository are built using:
 
