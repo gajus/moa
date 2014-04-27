@@ -192,11 +192,6 @@ or if you need to set multiple properties at once:
 $person->populate(['name' => 'Qux', 'language' => 'Lithuanian']);
 ```
 
-## Naming Convention
-
-* MOA model names are using [CamelCase](http://en.wikipedia.org/wiki/CamelCase) convention (e.g. `UserAgent`). 
-* Table names [must be singular](http://stackoverflow.com/a/809018/368691) (e.g. `user_agent` not `user_agents`) using underscore convention.
-
 ## Extending
 
 ### Mother
@@ -241,6 +236,11 @@ These methods can interrupt the respective transaction:
 |`afterInsert`|Triggered after `INSERT` but before the transaction is commited.|
 |`afterUpdate`|Triggered after `UPDATE` but before the transaction is commited.|
 |`afterDelete`|Triggered after `DELETE` but before the transaction is commited.|
+
+## Naming Convention
+
+* MOA model names are using [CamelCase](http://en.wikipedia.org/wiki/CamelCase) convention (e.g. `UserAgent`). 
+* Table names [must be singular](http://stackoverflow.com/a/809018/368691) (e.g. `user_agent` not `user_agents`) using underscore convention.
 
 ## Builder Script
 
