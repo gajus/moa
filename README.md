@@ -151,7 +151,7 @@ $person->delete();
 # $person['id'] null
 ```
 
-However, other property values are not discarded. If save the same object again, it will be inserted to the database:
+However, other property values are not discarded. If the same object instance is saved again, it will be inserted to the database with new primary key value:
 
 ```php
 # $person['name'] Bar
