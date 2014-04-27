@@ -226,13 +226,13 @@ class Car extends \Dynamically\Generated\Car {
 
 #### Triggers
 
+These methods can interrupt the respective transaction:
+
 |Name|Description|
 |---|---|
 |`afterInsert`|Triggered after `INSERT` but before the transaction is commited.|
 |`afterUpdate`|Triggered after `UPDATE` but before the transaction is commited.|
 |`afterDelete`|Triggered after `DELETE` but before the transaction is commited.|
-
-Each of the above methods can interrupt the respective transaction.
 
 ## Builder Script
 
