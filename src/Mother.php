@@ -118,7 +118,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 	}
 	
 	/**
-	 * Get database handler used to instantiate the object.
+	 * Get database handle used to instantiate the object.
 	 * 
 	 * @return PDO
 	 */
@@ -421,6 +421,10 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 			}
 			
 			throw $e;
+		}
+
+		if (!$this->db->inTransaction()) {
+			throw new Exception\LogicException('Transaction was commited before the time.');
 		}
 		
 		$this->db->commit();

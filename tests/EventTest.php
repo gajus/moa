@@ -86,4 +86,38 @@ class EventTest extends PHPUnit_Framework_TestCase {
             $this->assertSame($properties, $foo->getData());
         }
     }
+
+    /**
+     * @expectedException Gajus\MOA\Exception\LogicException
+     * @expectedExceptionMessage Transaction was commited before the time.
+     */
+    public function testAfterInsertCannotCommitTransaction () {
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'insert_commit_transaction';
+        $foo->save();
+    }
+
+    /**
+     * @expectedException Gajus\MOA\Exception\LogicException
+     * @expectedExceptionMessage Transaction was commited before the time.
+     */
+    public function testAfterUpdateCannotCommitTransaction () {
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo->save();
+        $foo['name'] = 'update_commit_transaction';
+        $foo->save();
+    }
+
+    /**
+     * @todo Check if object's state is recovered.
+     * 
+     * @expectedException Gajus\MOA\Exception\LogicException
+     * @expectedExceptionMessage Transaction was commited before the time.
+     */
+    public function testAfterDeleteCannotCommitTransaction () {
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo['name'] = 'delete_commit_transaction';
+        $foo->save();
+        $foo->delete();
+    }
 }

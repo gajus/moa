@@ -14,11 +14,20 @@ class SetTest extends PHPUnit_Framework_TestCase {
         $this->db->exec("TRUNCATE TABLE `string`");
     }
 
-    public function testSetProperty () {
+    public function testSet () {
         $foo = new \Sandbox\Model\String($this->db);
         $foo['name'] = 'Test';
 
         $this->assertSame('Test', $foo['name']);
+    }
+
+    /**
+     * @expectedException Gajus\MOA\Exception\InvalidArgumentException
+     * @expectedExceptionMessage Name is not a string.
+     */
+    public function testSetNameNotString () {
+        $foo = new \Sandbox\Model\String($this->db);
+        $foo->set([], 'bar');
     }
 
     public function testSetNullablePropertyToNull () {
@@ -26,6 +35,24 @@ class SetTest extends PHPUnit_Framework_TestCase {
         $foo['tinyint'] = null;
 
         $this->assertSame(null, $foo['tinyint']);
+    }
+
+    /**
+     * @expectedException Gajus\MOA\Exception\InvalidArgumentException
+     * @expectedExceptionMessage Value canont be null.
+     */
+    public function testSetNotNullablePropertyToNull () {
+        $foo = new \Sandbox\Model\Greedy($this->db);
+        $foo['name'] = null;
+    }
+
+    /**
+     * @expectedException Gajus\MOA\Exception\InvalidArgumentException
+     * @expectedExceptionMessage Value is not scalar.
+     */
+    public function testSetNotScalar () {
+        $foo = new \Sandbox\Model\Greedy($this->db);
+        $foo['name'] = new \stdClass;
     }
 
     /**
@@ -114,8 +141,4 @@ class SetTest extends PHPUnit_Framework_TestCase {
         $foo = new \Sandbox\Model\String($this->db);
         $foo['name'] = str_repeat('a', 101);
     }
-
-    #public function testCustomrValidator () {
-        // @todo
-    #}
 }
