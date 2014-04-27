@@ -129,7 +129,7 @@ $person->save();
 
 When object is inserted to the database, new object state is fetched from the database:
 
-```
+```php
 // Note that "language" property was not set
 // but it had default value in the table schema
 # $person['language'] English
