@@ -227,6 +227,7 @@ class Car extends \Dynamically\Generated\Car {
 #### Triggers
 
 |Name|Description|
+|---|---|
 |`afterInsert`|Triggered after `INSERT` but before the transaction is commited.|
 |`afterUpdate`|Triggered after `UPDATE` but before the transaction is commited.|
 |`afterDelete`|Triggered after `DELETE` but before the transaction is commited.|
