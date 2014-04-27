@@ -209,23 +209,30 @@ Models generated using MOA are `abstract`. You need to extend all models before 
 <?php
 namespace My\App\Model;
 
-class Car extends \Dynamically\Generated\Car {
-    static public function getLastBought (\PDO $db) {
-        $car = $db->query("SELECT `" . static::$properties['primary_key_name'] . "` FROM `" . static::$properties['table_name'] . "` ORDER BY `purchase_datetime` DESC LIMIT 1");
+class Person extends \Dynamically\Generated\Person {
+    static public function get[Where][..] (\PDO $db) {
+        $person_id = $db
+            ->query("SELECT `" . static::$properties['primary_key_name'] . "` FROM `" . static::$properties['table_name'] . "` ORDER BY `[..]` DESC LIMIT 1")
+            ->fetch(\PDO::FETCH_COLUMN);
+
+        if (!$person_id) {
+            throw new \Gajus\MOA\Exception\RecordNotFoundException('[..]');
+        }
         
-        return new static::__construct($db, $car[static::$properties['primary_key_name']]);
+        return new static::__construct($db, $person_id);
     }
 
-    static public function getManyWhereColour (\PDO $db, $colour) {
-        $sth = $db->prepare("SELECT * FROM `" . static::$properties['table_name'] . "` WHERE `colour` = ?");
-        $sth->execute([ $colour ]);
+    static public function getMany[Where][..] (\PDO $db) {
+        $sth = $db->prepare("SELECT * FROM `" . static::$properties['table_name'] . "` WHERE `[..]` = ?");
+        $sth->execute(/* [..] */);
 
         return $sth->fetchAll(\PDO::FETCH_ASSOC);
     }
 }
 ```
 
-> MOA convention is to prefix method names "getMany[Where]" for methods that return array and "get[Where]" that return an instance of `Mother`.
+> MOA convention is to prefix "getMany[Where]" methods that return array and "get[Where]" that return an instance of `Mother`.
+> This is not enforced. It is an observation of what works the best in practise.
 
 #### Triggers
 
