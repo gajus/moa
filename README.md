@@ -263,7 +263,7 @@ protected function afterDelete () {}
 
 #### Validation
 
-MOA ensures that user input is compatible with the schema, e.g. that input will not be truncated because it is too long.
+MOA ensures that user input is compatible with the schema, e.g. if input will be truncated because it is too long.
 
 MOA provides two types of validation that you can implement before the schema validation.
 
