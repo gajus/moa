@@ -163,6 +163,12 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
         // This value is used to determine whether object state has been affected.
         $value_before_set = $this->get($name);
 
+        $error_message = $this->validateSet($name, $value);
+
+        if ($error_message) {
+            throw new Exception\ValidationException($error_message);
+        }
+
         if (is_null($value)) {
             $required_property_names = array_keys($this->getRequiredProperties());
 
@@ -285,6 +291,12 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
             if (!isset($this->data[$required_property_name])) {
                 throw new Exception\LogicException('Cannot initialise object without all required properties.');
             }
+        }
+
+        $error_message = $this->validateSave();
+
+        if ($error_message) {
+            throw new Exception\ValidationException($error_message);
         }
 
         // Object state backup to recover in case of an Exception in the "after" event.
@@ -435,28 +447,39 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
     }
 
     /**
-     * Method called at the time of setting property value.
-     * @todo How to deal with full object validation and partial object validation.
-     * @param array $data
+     * Triggered when an attempt is made to change object property.
+     * Returning an error message will discard the transaction and throw Gajus\MOA\Exception\ValidationException exception.
+     * 
+     * @param string $name
+     * @param mixed $value
+     * @return null|string
      */
-    protected function validate (array $data) {}
+    protected function validateSet ($name, $value) {}
+
+    /**
+     * Triggered when an attempt is made to save object state.
+     * Returning an error message will discard the transaction and throw Gajus\MOA\Exception\ValidationException exception.
+     * 
+     * @return null|mixed
+     */
+    protected function validateSave () {}
     
     /**
-     * Method called after object is insterted to the database.
+     * Triggered after INSERT query but before the transaction is commited.
      * 
      * @return void
      */
     protected function afterInsert () {}
 
     /**
-     * Method called after object is updated in the database.
+     * Triggered after UPDATE query but before the transaction is commited.
      * 
      * @return void
      */
     protected function afterUpdate () {}
 
     /**
-     * Method called after object is deleted from the database.
+     * Triggered after DELETE query but before the transaction is commited.
      * 
      * @return void
      */

@@ -43,4 +43,16 @@ class String extends \Sandbox\Model\MOA\String {
             $this->db->commit();
         }
     }
+
+    public function validateSet ($name, $value) {
+        if ($name === 'name' && $value === 'set_do_not_pass') {
+            return 'set_does_not_pass';
+        }
+    }
+
+    public function validateSave () {
+        if (isset($this->data['name']) && $this->data['name'] === 'save_do_not_pass') {
+            return 'save_does_not_pass';
+        }
+    }
 }

@@ -238,11 +238,54 @@ class Person extends \Dynamically\Generated\Person {
 
 These methods can interrupt the respective transactions:
 
-|Name|Description|
-|---|---|
-|`afterInsert`|Triggered after `INSERT` query but before the transaction is commited.|
-|`afterUpdate`|Triggered after `UPDATE` query but before the transaction is commited.|
-|`afterDelete`|Triggered after `DELETE` query but before the transaction is commited.|
+```php
+/**
+ * Triggered after INSERT query but before the transaction is commited.
+ * 
+ * @return void
+ */
+protected function afterInsert () {}
+
+/**
+ * Triggered after UPDATE query but before the transaction is commited.
+ * 
+ * @return void
+ */
+protected function afterUpdate () {}
+
+/**
+ * Triggered after DELETE query but before the transaction is commited.
+ * 
+ * @return void
+ */
+protected function afterDelete () {}
+```
+
+#### Validation
+
+MOA ensures that user input is compatible with the schema, e.g. that input will not be truncated because it is too long.
+
+MOA provides two types of validation that you can implement before the schema validation.
+
+```php
+/**
+ * Triggered when an attempt is made to change object property.
+ * Returning an error message will discard the transaction and throw Gajus\MOA\Exception\ValidationException exception.
+ * 
+ * @param string $name
+ * @param mixed $value
+ * @return null|string
+ */
+protected function validateSet ($name, $value) {}
+
+/**
+ * Triggered when an attempt is made to save object state.
+ * Returning an error message will discard the transaction and throw Gajus\MOA\Exception\ValidationException exception.
+ * 
+ * @return null|mixed
+ */
+protected function validateSave () {}
+```
 
 ## Naming Convention
 
