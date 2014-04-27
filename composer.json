@@ -1,6 +1,6 @@
 {
 	"name": "gajus/moa",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "MOA implements dynamically generated Active Record database abstraction.",
 	"keywords": ["model", "active record"],
 	"homepage": "https://github.com/gajus/moa",
