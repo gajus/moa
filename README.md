@@ -194,8 +194,8 @@ $person->populate(['name' => 'Qux', 'language' => 'Lithuanian']);
 
 ## Naming Convention
 
-* MOA assumes that your model names are using [CamelCase](http://en.wikipedia.org/wiki/CamelCase) convention (e.g. `MyTableName`). 
-* Table names [must be singular](http://stackoverflow.com/a/809018/368691) (e.g. `car` not `cars`) using underscore convention.
+* MOA model names are using [CamelCase](http://en.wikipedia.org/wiki/CamelCase) convention (e.g. `UserAgent`). 
+* Table names [must be singular](http://stackoverflow.com/a/809018/368691) (e.g. `user_agent` not `user_agents`) using underscore convention.
 
 ## Extending
 
