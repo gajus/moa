@@ -91,8 +91,6 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
 		}
 
 		if ($this->updated_properties) {
-			die(var_dump( $this->updated_properties ));
-
 			throw new Exception\LogicException('Obeject state has not been saved prior synchronisation.');
 		}
 
