@@ -175,9 +175,9 @@ MOA implements `ArrayAccess` interface. You can manipulate object properties usi
 
 ```php
 <?php
-$car = new \My\App\Model\Car($db);
-$car['colour'] = 'red';
-$car->save();
+$person = new \My\App\Model\Person($db);
+$person['name'] = 'Baz';
+$person->save();
 ```
 
 or if you need to set multiple properties at once:
@@ -187,25 +187,15 @@ or if you need to set multiple properties at once:
  * Shorthand method to pass each array key, value pair to the setter.
  *
  * @param array $data
- * @return gajus\MOA\Mother
+ * @return Gajus\MOA\Mother
  */
-public function populate (array $data);
+$person->populate(['name' => 'Qux', 'language' => 'Lithuanian']);
 ```
 
 ## Naming Convention
 
-MOA assumes that your models are writen using CamelCase convention (e.g. `MyTableName`). Table names must be singular (e.g. `Car` not `Cars`). MOA generated models will use CamelCase convention.
-
-## Example
-
-```php
-<?php
-$car = new \My\App\Model\Car($db); // $db is PDO instance
-$car['colour'] = 'red';
-$car->save();
-
-echo $car['id']; // Newly entered record ID.
-```
+* MOA assumes that your model names are using [CamelCase](http://en.wikipedia.org/wiki/CamelCase) convention (e.g. `MyTableName`). 
+* Table names [must be singular](http://stackoverflow.com/a/809018/368691) (e.g. `car` not `cars`) using underscore convention.
 
 ## Extending
 

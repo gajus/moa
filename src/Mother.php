@@ -130,7 +130,7 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
      * Shorthand method to pass each array key, value pair to the setter.
      *
      * @param array $data
-     * @return gajus\MOA\Mother
+     * @return Gajus\MOA\Mother
      */
     public function populate (array $data) {
         foreach ($data as $name => $value) {
