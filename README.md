@@ -95,6 +95,15 @@ abstract class Person extends \Gajus\MOA\Mother {
                 'extra' => '',
                 'character_maximum_length' => 100,
             ],
+            'language' => [
+                'column_type' => 'varchar(100)',
+                'column_key' => '',
+                'column_default' => 'English',
+                'data_type' => 'varchar',
+                'is_nullable' => false,
+                'extra' => '',
+                'character_maximum_length' => 100,
+            ]
         ];
 }
 ```
@@ -116,6 +125,14 @@ $person['name'] = 'Foo';
 // Insert object to the database
 $person->save();
 # $person['id'] 1
+```
+
+When object is inserted to the database, new object state is fetched from the database:
+
+```
+// Note that "language" property was not set
+// but it had default value in the table schema
+# $person['language'] English
 
 // Update property
 $person['name'] = 'Bar';
