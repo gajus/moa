@@ -255,3 +255,12 @@ php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --path "./t
 |`extends`|PHP class to extend. Defaults to "\Gajus\MOA\Mother".|
 
 All `.php` files will be deleted from the destination `path`. The destination `path` must have an empty `.moa` file. This requirement is a measure to prevent accidental data loss.
+
+## Installation
+
+MOA uses [Composer](https://getcomposer.org/) to install and update:
+
+```
+curl -s http://getcomposer.org/installer | php
+php composer.phar require gajus/moa
+```
