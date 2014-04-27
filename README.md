@@ -236,13 +236,13 @@ class Person extends \Dynamically\Generated\Person {
 
 #### Triggers
 
-These methods can interrupt the respective transaction:
+These methods can interrupt the respective transactions:
 
 |Name|Description|
 |---|---|
-|`afterInsert`|Triggered after `INSERT` but before the transaction is commited.|
-|`afterUpdate`|Triggered after `UPDATE` but before the transaction is commited.|
-|`afterDelete`|Triggered after `DELETE` but before the transaction is commited.|
+|`afterInsert`|Triggered after `INSERT` query but before the transaction is commited.|
+|`afterUpdate`|Triggered after `UPDATE` query but before the transaction is commited.|
+|`afterDelete`|Triggered after `DELETE` query but before the transaction is commited.|
 
 ## Naming Convention
 
@@ -254,7 +254,10 @@ These methods can interrupt the respective transaction:
 Models are built using `./bin/build.php`  script, e.g. unit testing dependencies in this repository are built using:
 
 ```bash
-php ./bin/build.php --namespace "Sandbox\Model\MOA" --database "moa" --path "./tests/Sandbox/Model/MOA"
+php ./bin/build.php\
+    --namespace "Sandbox\Model\MOA"\
+    --database "moa"\
+    --path "./tests/Sandbox/Model/MOA"
 ```
 
 ### Parameters
