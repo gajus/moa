@@ -130,8 +130,8 @@ $person->save();
 When object is inserted to the database, new object state is fetched from the database:
 
 ```php
-// Note that "language" property was not set
-// but it had default value in the table schema
+// Note that "language" property was not set,
+// though it had default value in the table schema.
 # $person['language'] English
 
 // Update property
@@ -151,7 +151,7 @@ $person->delete();
 # $person['id'] null
 ```
 
-However, other property values are not discarded. If you were to save the same object again, it will be inserted to the database:
+However, other property values are not discarded. If save the same object again, it will be inserted to the database:
 
 ```php
 # $person['name'] Bar
