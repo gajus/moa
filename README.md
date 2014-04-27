@@ -64,7 +64,7 @@ Gajus\MOA\Mother
 
 ## API
 
-This section of the documentation is using code examples from a fictional application to introduce you to the API. The model in the example extends from:
+This section of the documentation is using code examples from a fictional application to introduce you to the API. The `My\App\Model\Person` model in the example extends from:
 
 ```php
 /**
