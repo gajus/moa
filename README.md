@@ -162,7 +162,7 @@ $car['colour'] = 'red';
 $car->save();
 ```
 
-If you need to set multiple properties at once:
+or if you need to set multiple properties at once:
 
 ```php
 /**
