@@ -465,21 +465,21 @@ abstract class Mother implements \ArrayAccess, \Psr\Log\LoggerAwareInterface {
     protected function validateSave () {}
     
     /**
-     * Triggered after INSERT query but before the transaction is commited.
+     * Triggered after INSERT query but before the transaction is committed.
      * 
      * @return void
      */
     protected function afterInsert () {}
 
     /**
-     * Triggered after UPDATE query but before the transaction is commited.
+     * Triggered after UPDATE query but before the transaction is committed.
      * 
      * @return void
      */
     protected function afterUpdate () {}
 
     /**
-     * Triggered after DELETE query but before the transaction is commited.
+     * Triggered after DELETE query but before the transaction is committed.
      * 
      * @return void
      */
