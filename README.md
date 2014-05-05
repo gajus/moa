@@ -36,15 +36,15 @@ With other Active Record implementations you do not need a generator because the
 
 ### Mother
 
-All models extend `Gajus\MOA\Mother`. Mother attempts to reduce the number of executions that would otherwise cause an error only at the time of interacting with the database. This is achived by using the prefetched table attributes to work out when:
+All models extend `Gajus\MOA\Mother`. Mother attempts to reduce the number of executions that would otherwise cause an error only at the time of interacting with the database. This is achieved by using the pre-fetched table attributes to work out when:
 
 * Accessing a non-existing property.
-* Setting proprety that does not pass derived or custom validation logic.
+* Setting property that does not pass derived or custom validation logic.
 * Saving object without all the required properties.
 
-Furthemore, Mother is keeping track of all the changes made to the object instance. `UPDATE` query will include only the properties that have changed since the last synchronisation. If object is saved without changes, then `UPDATE` query is not executed.
+Furthermore, Mother is keeping track of all the changes made to the object instance. `UPDATE` query will include only the properties that have changed since the last synchronization. If object is saved without changes, then `UPDATE` query is not executed.
 
-> If you know a negative downside of the behaviour described above, please [contribute](https://github.com/gajus/moa/issues/1) a warning.
+> If you know a negative downside of the behavior described above, please [contribute](https://github.com/gajus/moa/issues/1) a warning.
 
 Delete operation will remove the object reference from the database and unset the primary key property value.
 
@@ -240,21 +240,21 @@ These methods can interrupt the respective transactions:
 
 ```php
 /**
- * Triggered after INSERT query but before the transaction is commited.
+ * Triggered after INSERT query but before the transaction is committed.
  * 
  * @return void
  */
 protected function afterInsert () {}
 
 /**
- * Triggered after UPDATE query but before the transaction is commited.
+ * Triggered after UPDATE query but before the transaction is committed.
  * 
  * @return void
  */
 protected function afterUpdate () {}
 
 /**
- * Triggered after DELETE query but before the transaction is commited.
+ * Triggered after DELETE query but before the transaction is committed.
  * 
  * @return void
  */
