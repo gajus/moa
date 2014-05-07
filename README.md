@@ -1,6 +1,6 @@
 # MOA
 
-## I have going around the last week (2014 05 07) asking people for feedback through farious channels. I have since made a roadmap that in effect requires to rewrite MOA from the ground up. Keywords for the change: SRP, repository pattern, entity mapper, relations. I ask newcomers to subscribe (star) this repository until version 2.0 is released. Thank you everyone for your feedback.
+### Over the last week (2014 05 07) I have been asking people for feedback through various channels. I have since made a roadmap that in effect requires to rewrite MOA from the ground up. Keywords for the change: SRP, repository pattern, entity mapper, relations. I ask newcomers to subscribe (star) this repository until version 2.0 is released (beginning of the next month). Thank you.
 
 [![Build Status](https://travis-ci.org/gajus/moa.png?branch=master)](https://travis-ci.org/gajus/moa)
 [![Coverage Status](https://coveralls.io/repos/gajus/moa/badge.png?branch=master)](https://coveralls.io/r/gajus/moa?branch=master)
