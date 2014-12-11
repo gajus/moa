@@ -1,11 +1,11 @@
 # MOA
 
-### Over the last week (2014 05 07) I have been asking people for feedback. I have since made a roadmap that in effect requires to rewrite MOA from the ground up. Keywords for the change: SRP, repository pattern, entity mapper, relations. I ask newcomers to subscribe (star) this repository until version 2.0 is released (beginning of the next month). Thank you.
-
 [![Build Status](https://travis-ci.org/gajus/moa.png?branch=master)](https://travis-ci.org/gajus/moa)
 [![Coverage Status](https://coveralls.io/repos/gajus/moa/badge.png?branch=master)](https://coveralls.io/r/gajus/moa?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/gajus/moa/version.png)](https://packagist.org/packages/gajus/moa)
 [![License](https://poser.pugx.org/gajus/moa/license.png)](https://packagist.org/packages/gajus/moa)
+
+> This project is no longer maintained.
 
 MOA (Mother of All) is a database abstraction using [Active Record](http://en.wikipedia.org/wiki/Active_record_pattern) pattern:
 
